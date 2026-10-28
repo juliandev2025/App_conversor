@@ -325,13 +325,11 @@ class AppConversorGUI:
             self.convert_btn.config(state=tk.DISABLED)
             self.root.update_idletasks()
 
-            dir_name  = os.path.dirname(os.path.abspath(path))
-            base_name = os.path.splitext(os.path.basename(path))[0]
-            out_pdf   = os.path.join(dir_name, f"Reporte_Ejecutivo_{base_name}.pdf")
+            dir_name = os.path.dirname(os.path.abspath(path))
 
-            # Llamada al motor con opciones de exportacion
+            # Llamada al motor: genera automaticamente el nombre obligatorio con Cedula, Nombre y Contrato
             resultado = conversor_core.procesar_cronograma(
-                path, out_pdf,
+                path, dir_name,
                 generar_imagen=gen_img,
                 generar_txt=gen_txt,
                 imagen_dpi=200

@@ -27,9 +27,7 @@ def process_single_file(pdf_path, output_pdf=None, open_when_done=False, generar
     print(f"\n📄 Procesando cronograma: {os.path.basename(pdf_path)}")
     try:
         if not output_pdf:
-            dir_name = os.path.dirname(os.path.abspath(pdf_path))
-            base_name = os.path.splitext(os.path.basename(pdf_path))[0]
-            output_pdf = os.path.join(dir_name, f"Reporte_Ejecutivo_{base_name}.pdf")
+            output_pdf = os.path.dirname(os.path.abspath(pdf_path))
 
         res = conversor_core.procesar_cronograma(
             pdf_path, output_pdf,

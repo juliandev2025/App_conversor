@@ -184,13 +184,14 @@ if uploaded_files:
         st.write("")
         # Fila de botones de descarga
         st.write("#### 💾 Opciones de Descarga")
+        report_base = conversor_core.build_report_basename(data)
         cols_btn = st.columns(max(3, 2 + len(image_bytes_list)))
 
         with cols_btn[0]:
             st.download_button(
                 label="📥 Descargar PDF Oficial",
                 data=pdf_bytes,
-                file_name=f"Reporte_Ejecutivo_{data['contrato']}_{data['identificacion']}.pdf",
+                file_name=f"{report_base}.pdf",
                 mime="application/pdf",
                 type="primary",
                 use_container_width=True
@@ -200,7 +201,7 @@ if uploaded_files:
                 st.download_button(
                     label="📝 Descargar TXT",
                     data=txt_content.encode("utf-8-sig"),
-                    file_name=f"Reporte_Ejecutivo_{data['contrato']}.txt",
+                    file_name=f"{report_base}.txt",
                     mime="text/plain",
                     use_container_width=True
                 )
@@ -209,10 +210,11 @@ if uploaded_files:
             if idx + 2 < len(cols_btn):
                 with cols_btn[idx + 2]:
                     label_p = f"🖼️ Descargar Imagen (Pág. {idx+1})" if len(image_bytes_list) > 1 else "🖼️ Descargar Imagen HD"
+                    file_name_img = f"{report_base}_pagina_{idx+1}.png" if len(image_bytes_list) > 1 else f"{report_base}.png"
                     st.download_button(
                         label=label_p,
                         data=img_data,
-                        file_name=f"Reporte_Ejecutivo_{data['contrato']}_pag_{idx+1}.png",
+                        file_name=file_name_img,
                         mime="image/png",
                         use_container_width=True
                     )

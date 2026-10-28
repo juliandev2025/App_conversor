@@ -788,7 +788,7 @@ def render_html_report(data, analysis):
             <h1 class="header-title" style="font-size: 11pt;">REPORTE DE ESTADO DE CUENTA</h1>
             <div class="header-meta">
                 <div class="title-sub" style="font-size: 8.5pt; font-weight: 700; color: #475569;">
-                    Contrato No: <b style="color: #0f172a;">{data['contrato']}</b> | Cliente: <b style="color: #0f172a;">{data['nombre']}</b>
+                    Contrato No: <b style="color: #0f172a;">{data['contrato']}</b> | Cédula: <b style="color: #0f172a;">{data['identificacion']}</b> | Cliente: <b style="color: #0f172a;">{data['nombre']}</b>
                 </div>
             </div>
         </div>
@@ -1075,8 +1075,8 @@ def generate_pdf_reportlab(data, analysis, output_pdf_path):
         
         h2 = Table([
             [Paragraph("REPORTE DE ESTADO DE CUENTA", ParagraphStyle('H2T', fontName='Helvetica-Bold', fontSize=10, textColor=colors.HexColor('#0052cc'))),
-             Paragraph(f"Contrato No: <b>{data['contrato']}</b> | Cliente: <b>{data['nombre']}</b>", ParagraphStyle('H2Sub', fontName='Helvetica', fontSize=7.5, textColor=colors.HexColor('#475569'), alignment=2))]
-        ], colWidths=[240, 280])
+             Paragraph(f"Contrato: <b>{data['contrato']}</b> | Cédula: <b>{data['identificacion']}</b> | Cliente: <b>{data['nombre']}</b>", ParagraphStyle('H2Sub', fontName='Helvetica', fontSize=7.5, textColor=colors.HexColor('#475569'), alignment=2))]
+        ], colWidths=[200, 320])
         h2.setStyle(TableStyle([
             ('BOTTOMPADDING', (0,0), (-1,-1), 4),
             ('LINEBELOW', (0,0), (-1,-1), 1.5, colors.HexColor('#0052cc')),
@@ -1365,16 +1365,42 @@ class ResultadoProceso(dict):
     def txt_path(self): return self.get("txt_path")
 
 
+def sanitize_filename(text):
+    """Limpia caracteres invalidos para nombres de archivo en Windows y Linux."""
+    if not text:
+        return "NA"
+    tildes = {'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+              'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+              'ñ': 'n', 'Ñ': 'N'}
+    for k, v in tildes.items():
+        text = text.replace(k, v)
+    text = re.sub(r'[^\w\-_.]', '_', text)
+    return re.sub(r'_+', '_', text).strip('_')
+
+
+def build_report_basename(data):
+    """
+    Construye el nombre base institucional obligatorio con:
+    Cédula + Nombre Completo + Contrato
+    Ejemplo: Reporte_1122125712_MAYERLI_RUIZ_HERNANDEZ_coyrmfg
+    """
+    cedula = sanitize_filename(data.get("identificacion", "SIN_CEDULA"))
+    nombre = sanitize_filename(data.get("nombre", "CLIENTE")).upper()
+    contrato = sanitize_filename(data.get("contrato", "SIN_CONTRATO"))
+    return f"Reporte_{cedula}_{nombre}_{contrato}"
+
+
 def procesar_cronograma(pdf_input, output_pdf_path=None, generar_imagen=False,
                         generar_txt=False, imagen_dpi=200):
     """
     Función principal de alto nivel.
     Recibe la ruta del PDF de cronograma o sus bytes,
     genera el PDF del Reporte Ejecutivo y opcionalmente imagen PNG y TXT.
+    Todos los archivos generados llevan en su nombre: Cédula, Nombre Completo y Contrato.
 
     Parámetros:
         pdf_input        : Ruta al PDF o bytes.
-        output_pdf_path  : Ruta de salida para el PDF (auto si None).
+        output_pdf_path  : Ruta o directorio de salida para el PDF (auto si None).
         generar_imagen   : Si True, exporta PNG de alta calidad.
         generar_txt      : Si True, exporta archivo de texto plano.
         imagen_dpi       : Resolución de la imagen (default 200 dpi).
@@ -1386,9 +1412,15 @@ def procesar_cronograma(pdf_input, output_pdf_path=None, generar_imagen=False,
     analysis = analyze_and_classify_movements(data)
     html_code = render_html_report(data, analysis)
 
+    report_basename = build_report_basename(data)
+
     if not output_pdf_path:
-        contrato = data.get("contrato") or "reporte"
-        output_pdf_path = f"Reporte_Estado_Cuenta_{contrato}.pdf"
+        output_pdf_path = f"{report_basename}.pdf"
+    elif os.path.isdir(output_pdf_path):
+        output_pdf_path = os.path.join(output_pdf_path, f"{report_basename}.pdf")
+    else:
+        dir_dest = os.path.dirname(os.path.abspath(output_pdf_path))
+        output_pdf_path = os.path.join(dir_dest, f"{report_basename}.pdf")
 
     pdf_path = convert_html_to_pdf(html_code, output_pdf_path, data=data, analysis=analysis)
 
@@ -1399,6 +1431,7 @@ def procesar_cronograma(pdf_input, output_pdf_path=None, generar_imagen=False,
         "analysis": analysis,
         "imagenes": [],
         "txt_path": None,
+        "basename": report_basename,
     })
 
     # Exportar imagen PNG de alta calidad

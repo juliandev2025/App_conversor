@@ -540,12 +540,13 @@ def convert_cronograma():
         conversor_core.generate_pdf_reportlab(data, analysis, pdf_buffer)
         pdf_buffer.seek(0)
 
-        # Guardar en caché rápida para descarga directa
+        # Guardar en caché rápida para descarga directa con nombre institucional
         contract_key = data.get("contrato", "reporte")
+        report_base = conversor_core.build_report_basename(data)
         LAST_PROCESSED[contract_key] = {
             "pdf_bytes": pdf_buffer.getvalue(),
             "data": data,
-            "filename": f"Reporte_Ejecutivo_{contract_key}.pdf"
+            "filename": f"{report_base}.pdf"
         }
 
         return jsonify({
