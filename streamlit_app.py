@@ -1,7 +1,8 @@
 """
 streamlit_app.py
 Punto de entrada oficial para Streamlit Community Cloud.
-Despliegue automático en https://share.streamlit.io / https://*.streamlit.app
+Despliegue automatico en https://share.streamlit.io / https://*.streamlit.app
+Soporta generacion y descarga de PDF Oficial, Imagenes PNG HD y archivo TXT.
 """
 
 import io
@@ -67,7 +68,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 st.markdown('<div class="main-title">📄 App Conversor de Cronogramas</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Convierte cronogramas del CRM en Estados de Cuenta Ejecutivos detallados (Formato idéntico a Plantilla).</div>', unsafe_allow_html=True)
+st.markdown('<div class="sub-title">Convierte cronogramas del CRM en Estados de Cuenta Ejecutivos detallados (PDF Oficial, Imagen PNG y TXT).</div>', unsafe_allow_html=True)
 
 uploaded_files = st.file_uploader(
     "Sube uno o varios archivos PDF de Cronograma (`cronograma_*.pdf`)",
@@ -78,22 +79,47 @@ uploaded_files = st.file_uploader(
 if uploaded_files:
     for uploaded_file in uploaded_files:
         file_bytes = uploaded_file.read()
-        
+
         with st.spinner(f"Procesando {uploaded_file.name}..."):
             data = conversor_core.extract_cronograma_data(file_bytes)
             analysis = conversor_core.analyze_and_classify_movements(data)
             html_content = conversor_core.render_html_report(data, analysis)
 
-            # Generar PDF en temporal usando fallback compatible con Linux en la nube
+            # Generar PDF en temporal
             with tempfile.NamedTemporaryFile(suffix=".pdf", delete=False) as tmp_pdf:
                 tmp_pdf_path = tmp_pdf.name
-            
+
+            image_bytes_list = []
+            txt_content = ""
             try:
                 pdf_path = conversor_core.convert_html_to_pdf(
                     html_content, tmp_pdf_path, data=data, analysis=analysis
                 )
                 with open(pdf_path, "rb") as f:
                     pdf_bytes = f.read()
+
+                # Generar imágenes PNG de alta calidad (200 DPI)
+                try:
+                    img_paths = conversor_core.convert_pdf_to_images(pdf_path, dpi=200)
+                    for ip in img_paths:
+                        with open(ip, "rb") as imf:
+                            image_bytes_list.append((os.path.basename(ip), imf.read()))
+                        try: os.remove(ip)
+                        except: pass
+                except Exception:
+                    pass
+
+                # Generar archivo TXT
+                tmp_txt_path = tmp_pdf_path + ".txt"
+                try:
+                    conversor_core.generate_txt_report(data, analysis, tmp_txt_path)
+                    with open(tmp_txt_path, "r", encoding="utf-8-sig") as tf:
+                        txt_content = tf.read()
+                finally:
+                    if os.path.exists(tmp_txt_path):
+                        try: os.remove(tmp_txt_path)
+                        except: pass
+
             finally:
                 if os.path.exists(tmp_pdf_path):
                     try: os.remove(tmp_pdf_path)
@@ -143,27 +169,47 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
         st.write("")
-        # Botones de descarga
-        btn_col1, btn_col2, _ = st.columns([1.5, 1.5, 3])
-        with btn_col1:
+        # Fila de botones de descarga
+        st.write("#### 💾 Opciones de Descarga")
+        cols_btn = st.columns(max(3, 2 + len(image_bytes_list)))
+
+        with cols_btn[0]:
             st.download_button(
-                label="📥 Descargar Reporte PDF Oficial",
+                label="📥 Descargar PDF Oficial",
                 data=pdf_bytes,
                 file_name=f"Reporte_Ejecutivo_{data['contrato']}_{data['identificacion']}.pdf",
                 mime="application/pdf",
                 type="primary",
                 use_container_width=True
             )
-        with btn_col2:
-            st.download_button(
-                label="🌐 Descargar Código HTML",
-                data=html_content,
-                file_name=f"Reporte_Ejecutivo_{data['contrato']}.html",
-                mime="text/html",
-                use_container_width=True
-            )
+        with cols_btn[1]:
+            if txt_content:
+                st.download_button(
+                    label="📝 Descargar TXT",
+                    data=txt_content.encode("utf-8-sig"),
+                    file_name=f"Reporte_Ejecutivo_{data['contrato']}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
 
-        # Previsualización embebida
+        for idx, (img_name, img_data) in enumerate(image_bytes_list):
+            if idx + 2 < len(cols_btn):
+                with cols_btn[idx + 2]:
+                    label_p = f"🖼️ Descargar Imagen (Pág. {idx+1})" if len(image_bytes_list) > 1 else "🖼️ Descargar Imagen HD"
+                    st.download_button(
+                        label=label_p,
+                        data=img_data,
+                        file_name=f"Reporte_Ejecutivo_{data['contrato']}_pag_{idx+1}.png",
+                        mime="image/png",
+                        use_container_width=True
+                    )
+
+        # Vista rápida del archivo TXT
+        if txt_content:
+            with st.expander("📝 Ver Resumen en Texto Plano (TXT)", expanded=False):
+                st.code(txt_content, language="text")
+
+        # Previsualización embebida del HTML
         st.write("### 👁️ Vista Previa del Documento Oficial")
         st.components.v1.html(html_content, height=1150, scrolling=True)
 
@@ -174,8 +220,11 @@ else:
     1. **Sube el cronograma** exportado del CRM (`cronograma_*.pdf`).
     2. **La aplicación analiza automáticamente**:
        - **Cuotas Cicladas**: Cuotas con fecha de vencimiento cumplida a la fecha de consulta.
-       - **Pagos Aplicados**: Pagos verificados y confirmados en la plataforma.
-       - **Cuotas Atrasadas**: Cuotas cicladas que aún no cuentan con pago registrado.
+       - **Pagos Aplicados**: Pagos verificados por monto acumulado.
+       - **Cuotas Atrasadas**: Cuotas en mora pendiente.
        - **Cuotas Por Ciclar**: Cuotas futuras programadas en el calendario.
-    3. **Genera el PDF Ejecutivo**: Idéntico a la plantilla de control interno oficial, listo para enviar a la tienda o cliente.
+    3. **Descarga el formato que prefieras**:
+       - **PDF Oficial**: Idéntico a la plantilla ejecutiva.
+       - **Imagen PNG HD**: 200 DPI lista para compartir por WhatsApp o redes.
+       - **Archivo TXT**: Texto formateado y limpio para copiar directamente a correos o chats de soporte.
     """)

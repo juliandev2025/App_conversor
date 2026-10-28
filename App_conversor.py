@@ -19,7 +19,7 @@ import glob
 import subprocess
 import conversor_core
 
-def process_single_file(pdf_path, output_pdf=None, open_when_done=False):
+def process_single_file(pdf_path, output_pdf=None, open_when_done=False, generar_imagen=False, generar_txt=False):
     if not os.path.exists(pdf_path):
         print(f"❌ Error: El archivo '{pdf_path}' no existe.")
         return None
@@ -31,7 +31,15 @@ def process_single_file(pdf_path, output_pdf=None, open_when_done=False):
             base_name = os.path.splitext(os.path.basename(pdf_path))[0]
             output_pdf = os.path.join(dir_name, f"Reporte_Ejecutivo_{base_name}.pdf")
 
-        pdf_path_res, _, data, analysis = conversor_core.procesar_cronograma(pdf_path, output_pdf)
+        res = conversor_core.procesar_cronograma(
+            pdf_path, output_pdf,
+            generar_imagen=generar_imagen,
+            generar_txt=generar_txt,
+            imagen_dpi=200
+        )
+        pdf_path_res = res.pdf_path
+        data = res.data
+        analysis = res.analysis
 
         print(f"   👤 Cliente: {data['nombre']}")
         print(f"   🔢 Contrato: {data['contrato']} | Cédula: {data['identificacion']}")
@@ -43,6 +51,11 @@ def process_single_file(pdf_path, output_pdf=None, open_when_done=False):
             print(f"   ✅ AL DÍA: 0 cuotas atrasadas | Saldo exigible: {data['saldo_actual']}")
 
         print(f"   🎯 PDF generado con éxito: {pdf_path_res}")
+        if res.imagenes:
+            for img in res.imagenes:
+                print(f"   🖼️  Imagen HD generada: {img}")
+        if res.txt_path:
+            print(f"   📝 TXT generado: {res.txt_path}")
 
         if open_when_done:
             os.startfile(pdf_path_res)
@@ -52,7 +65,7 @@ def process_single_file(pdf_path, output_pdf=None, open_when_done=False):
         print(f"❌ Error procesando {pdf_path}: {e}")
         return None
 
-def process_batch(target_dir="."):
+def process_batch(target_dir=".", generar_imagen=False, generar_txt=False):
     search_pattern = os.path.join(target_dir, "*cronograma*.pdf")
     found_files = glob.glob(search_pattern)
     if not found_files:
@@ -66,7 +79,7 @@ def process_batch(target_dir="."):
     print(f"🚀 Iniciando conversión por lote ({len(found_files)} archivos encontrados)...")
     success_count = 0
     for f in found_files:
-        res = process_single_file(f, open_when_done=False)
+        res = process_single_file(f, open_when_done=False, generar_imagen=generar_imagen, generar_txt=generar_txt)
         if res:
             success_count += 1
 
@@ -87,14 +100,18 @@ def main():
         python_exe = sys.executable
         subprocess.run([python_exe, "-m", "streamlit", "run", "app_web.py"])
     elif sys.argv[1] == "--batch":
-        folder = sys.argv[2] if len(sys.argv) > 2 else "."
-        process_batch(folder)
+        folder = sys.argv[2] if len(sys.argv) > 2 and not sys.argv[2].startswith("--") else "."
+        gen_img = "--img" in sys.argv or "--all" in sys.argv
+        gen_txt = "--txt" in sys.argv or "--all" in sys.argv
+        process_batch(folder, generar_imagen=gen_img, generar_txt=gen_txt)
     elif sys.argv[1] in ["-h", "--help", "/?"]:
         print(__doc__)
     else:
         # Archivo específico
         pdf_file = sys.argv[1]
-        process_single_file(pdf_file, open_when_done=True)
+        gen_img = "--img" in sys.argv or "--all" in sys.argv
+        gen_txt = "--txt" in sys.argv or "--all" in sys.argv
+        process_single_file(pdf_file, open_when_done=True, generar_imagen=gen_img, generar_txt=gen_txt)
 
 if __name__ == "__main__":
     main()

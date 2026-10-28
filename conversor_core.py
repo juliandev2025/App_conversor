@@ -1190,11 +1190,197 @@ def convert_html_to_pdf(html_content, output_pdf_path, data=None, analysis=None)
     else:
         raise RuntimeError("No se encontró navegador Chromium ni datos estructurados para ReportLab.")
 
-def procesar_cronograma(pdf_input, output_pdf_path=None):
+def convert_pdf_to_images(pdf_path, output_dir=None, dpi=200):
+    """
+    Convierte cada página del PDF generado en una imagen PNG de alta calidad.
+    Usa pypdfium2 (preferido, alta fidelidad) o Pillow como fallback.
+
+    Parámetros:
+        pdf_path    : Ruta del PDF a convertir.
+        output_dir  : Directorio destino. Si es None, usa el mismo del PDF.
+        dpi         : Resolución en DPI (default 200 = alta calidad, 300 = impresión).
+
+    Retorna lista de rutas de las imágenes PNG generadas.
+    """
+    if output_dir is None:
+        output_dir = os.path.dirname(os.path.abspath(pdf_path))
+
+    base_name = os.path.splitext(os.path.basename(pdf_path))[0]
+    generated_images = []
+
+    # --- Intento 1: pypdfium2 (alta fidelidad, igual que Chrome renderiza) ---
+    try:
+        import pypdfium2 as pdfium
+        pdf_doc = pdfium.PdfDocument(pdf_path)
+        scale = dpi / 72.0  # pypdfium2 trabaja en puntos (72 dpi base)
+        for i, page in enumerate(pdf_doc):
+            bitmap = page.render(scale=scale, rotation=0)
+            pil_img = bitmap.to_pil()
+            img_path = os.path.join(output_dir, f"{base_name}_pagina_{i+1}.png")
+            pil_img.save(img_path, "PNG", optimize=False)
+            generated_images.append(img_path)
+        pdf_doc.close()
+        return generated_images
+    except ImportError:
+        pass
+    except Exception:
+        pass
+
+    # --- Intento 2: pdf2image (usa poppler) ---
+    try:
+        from pdf2image import convert_from_path
+        pages = convert_from_path(pdf_path, dpi=dpi)
+        for i, page_img in enumerate(pages):
+            img_path = os.path.join(output_dir, f"{base_name}_pagina_{i+1}.png")
+            page_img.save(img_path, "PNG")
+            generated_images.append(img_path)
+        return generated_images
+    except Exception:
+        pass
+
+    raise RuntimeError(
+        "No se pudo convertir el PDF a imagen. "
+        "Asegúrate de tener instalado pypdfium2 (pip install pypdfium2) o pdf2image+poppler."
+    )
+
+
+def generate_txt_report(data, analysis, output_txt_path=None):
+    """
+    Genera un archivo de texto plano (.txt) con el resumen completo del estado de cuenta,
+    con formato legible y estructurado para copiar/pegar o compartir por chat/correo.
+
+    Parámetros:
+        data            : Diccionario con metadatos extraídos del cronograma.
+        analysis        : Diccionario con el análisis financiero clasificado.
+        output_txt_path : Ruta del archivo .txt a crear. Si es None, retorna el string.
+
+    Retorna la ruta del archivo generado o el contenido en string.
+    """
+    fecha_gen = datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    sep_doble = "=" * 64
+    sep_simple = "-" * 64
+    mora_c = analysis['mora_count']
+
+    lines = []
+    lines.append(sep_doble)
+    lines.append("   REPORTE DE ESTADO DE CUENTA E HISTORIAL")
+    lines.append(f"   Generado el: {fecha_gen}")
+    lines.append(sep_doble)
+    lines.append("")
+
+    # ── DATOS DEL CLIENTE ──────────────────────────────────────
+    lines.append("[ DATOS DEL CLIENTE ]")
+    lines.append(sep_simple)
+    lines.append(f"  Cliente          : {data['nombre']}")
+    lines.append(f"  Identificación   : {data['identificacion']}")
+    lines.append(f"  Contrato No.     : {data['contrato']}")
+    lines.append(f"  Fecha consulta   : {data['fecha_consulta']}")
+    lines.append("")
+
+    # ── RESUMEN FINANCIERO (KPIs) ───────────────────────────────
+    lines.append("[ RESUMEN FINANCIERO ]")
+    lines.append(sep_simple)
+    lines.append(f"  Cuotas Cicladas  : {analysis['cicladas_count']}  (vencidas a la fecha)")
+    lines.append(f"  Pagos Aplicados  : {analysis['pagos_count']}  - Total pagado: {analysis['total_pagado_str']}")
+    estado_mora = f"[ALERTA MORA] {mora_c} CUOTA(S) EN MORA - {analysis['mora_subtitle']}" if mora_c > 0 else "[AL DIA] SIN MORA"
+    lines.append(f"  Estado Mora      : {estado_mora}")
+    lines.append(f"  Saldo Actual     : {data['saldo_actual']}")
+    lines.append(f"  Saldo Pendiente  : {data['saldo_pendiente']}  (total hasta fin de contrato)")
+    lines.append(f"  Proximo Pago     : {data['proximo_pago']}  - Pagar antes de: {data['pagar_antes_de']}")
+    lines.append("")
+
+    # ── HISTORIAL DETALLADO ─────────────────────────────────────
+    lines.append("[ HISTORIAL DETALLADO DE MOVIMIENTOS ]")
+    lines.append(sep_simple)
+    col_fmt = f"  {{:<10}} {{:<17}} {{:<12}} {{:<16}} {{:<16}} {{:<16}} {{}}"
+    lines.append(col_fmt.format("TIPO", "CONCEPTO", "FECHA", "MONTO", "MONTO APLIC.", "SALDO CUOTA", "ESTADO"))
+    lines.append("  " + "-" * 110)
+
+    for mov in analysis['classified']:
+        tipo     = mov['tipo']
+        concepto = mov['concepto'][:16]
+        fecha    = mov['fecha']
+        monto    = mov['monto'][:15]
+        m_apl    = mov['monto_apl'][:15]
+        saldo    = mov['saldo'][:15]
+        estado   = mov['estado'].replace("✔", "").strip()
+        # Indicador visual limpio
+        if mov['row_type'] == 'ciclada_mora':
+            estado = f"[MORA] {estado}"
+        elif mov['row_type'] == 'pago':
+            estado = f"[OK] {estado}"
+        lines.append(col_fmt.format(tipo, concepto, fecha, monto, m_apl, saldo, estado))
+
+    lines.append("")
+
+    # ── REVISION DE SOPORTE ─────────────────────────────────────
+    lines.append("[ REVISION DE SOPORTE ]")
+    lines.append(sep_simple)
+    # Limpiar markdown (**texto**) para texto plano
+    rev_text = analysis['revision_texto'].replace("**", "")
+    words = rev_text.split()
+    current_line = "  "
+    for word in words:
+        if len(current_line) + len(word) + 1 > 75:
+            lines.append(current_line)
+            current_line = "  " + word
+        else:
+            current_line += (" " if current_line.strip() else "") + word
+    if current_line.strip():
+        lines.append(current_line)
+
+    lines.append("")
+    lines.append(sep_doble)
+    lines.append("  Documento generado automaticamente por App Conversor")
+    lines.append(sep_doble)
+
+    content = "\n".join(lines)
+    if output_txt_path:
+        with open(output_txt_path, "w", encoding="utf-8-sig") as f:
+            f.write(content)
+        return output_txt_path
+
+    return content
+
+
+class ResultadoProceso(dict):
+    """
+    Objeto de resultado inteligente que permite acceso como diccionario
+    y desempaquetado de tupla retrocompatible (pdf_path, html_code, data, analysis).
+    """
+    def __iter__(self):
+        return iter([self["pdf_path"], self["html_code"], self["data"], self["analysis"]])
+
+    @property
+    def pdf_path(self): return self.get("pdf_path")
+    @property
+    def html_code(self): return self.get("html_code")
+    @property
+    def data(self): return self.get("data")
+    @property
+    def analysis(self): return self.get("analysis")
+    @property
+    def imagenes(self): return self.get("imagenes", [])
+    @property
+    def txt_path(self): return self.get("txt_path")
+
+
+def procesar_cronograma(pdf_input, output_pdf_path=None, generar_imagen=False,
+                        generar_txt=False, imagen_dpi=200):
     """
     Función principal de alto nivel.
     Recibe la ruta del PDF de cronograma o sus bytes,
-    genera el PDF del Reporte Ejecutivo y retorna (pdf_path, html_content, data, analysis).
+    genera el PDF del Reporte Ejecutivo y opcionalmente imagen PNG y TXT.
+
+    Parámetros:
+        pdf_input        : Ruta al PDF o bytes.
+        output_pdf_path  : Ruta de salida para el PDF (auto si None).
+        generar_imagen   : Si True, exporta PNG de alta calidad.
+        generar_txt      : Si True, exporta archivo de texto plano.
+        imagen_dpi       : Resolución de la imagen (default 200 dpi).
+
+    Retorna ResultadoProceso compatible como diccionario y como tupla
+    (pdf_path, html_code, data, analysis).
     """
     data = extract_cronograma_data(pdf_input)
     analysis = analyze_and_classify_movements(data)
@@ -1205,4 +1391,28 @@ def procesar_cronograma(pdf_input, output_pdf_path=None):
         output_pdf_path = f"Reporte_Estado_Cuenta_{contrato}.pdf"
 
     pdf_path = convert_html_to_pdf(html_code, output_pdf_path, data=data, analysis=analysis)
-    return pdf_path, html_code, data, analysis
+
+    resultado = ResultadoProceso({
+        "pdf_path": pdf_path,
+        "html_code": html_code,
+        "data": data,
+        "analysis": analysis,
+        "imagenes": [],
+        "txt_path": None,
+    })
+
+    # Exportar imagen PNG de alta calidad
+    if generar_imagen:
+        try:
+            imagenes = convert_pdf_to_images(pdf_path, dpi=imagen_dpi)
+            resultado["imagenes"] = imagenes
+        except Exception as e:
+            resultado["imagen_error"] = str(e)
+
+    # Exportar archivo TXT
+    if generar_txt:
+        txt_path = os.path.splitext(pdf_path)[0] + ".txt"
+        generate_txt_report(data, analysis, txt_path)
+        resultado["txt_path"] = txt_path
+
+    return resultado
