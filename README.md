@@ -38,7 +38,14 @@ Haz doble clic en:
 - Arrastra uno o varios cronogramas PDF.
 - Podrás ver las tarjetas de métricas en tiempo real, previsualizar el reporte completo y descargarlo con el botón **"📥 Descargar Reporte PDF Ejecutivo"**.
 
-### Opción 3: Línea de Comandos / Procesamiento por Lote
+### Opción 3: Despliegue en la Nube con Vercel ⚡
+La aplicación está 100% configurada y lista para desplegarse gratis en Vercel:
+1. Ve a [vercel.com](https://vercel.com) e inicia sesión con tu cuenta de GitHub.
+2. Haz clic en **"Add New Project"** e importa el repositorio `juliandev2025/App_conversor`.
+3. Vercel detectará automáticamente `vercel.json` y la función serverless de Python en `api/index.py`.
+4. Haz clic en **"Deploy"**. En 1 minuto tendrás tu aplicación en línea con URL pública accesible desde cualquier dispositivo o tienda.
+
+### Opción 4: Línea de Comandos / Procesamiento por Lote
 Para usuarios avanzados o integración directa:
 ```bash
 # Convertir un cronograma específico:
