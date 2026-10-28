@@ -135,6 +135,34 @@ def analyze_and_classify_movements(data):
 
     total_pagos_verificados = len(pagos_verificados)
 
+    # ─── PRE-CÁLCULO: monto total pagado verificado ───────────────────────────
+    # Sumar TODOS los pagos verificados para determinar cuántas cuotas cubren,
+    # independiente de cuántas transacciones de pago existan.
+    suma_pagos_verificados = sum(parse_currency(r[2]) for r in pagos_verificados)
+
+    # Obtener monto de la primera cuota para calcular cuotas_cubiertas.
+    # Se determina durante el primer recorrido.
+    monto_cuota_unitario = 0.0
+    for r in data["filas"]:
+        if "Cuota" in r[0]:
+            monto_cuota_unitario = parse_currency(r[2])
+            if monto_cuota_unitario > 0:
+                break
+
+    # Cuántas cuotas están efectivamente cubiertas por los pagos verificados.
+    # Usar floor con tolerancia de $0.01 para evitar errores de punto flotante.
+    if monto_cuota_unitario > 0:
+        cuotas_cubiertas = int((suma_pagos_verificados + 0.01) / monto_cuota_unitario)
+    else:
+        # Fallback: si no se pudo determinar el monto unitario, usar conteo de transacciones
+        cuotas_cubiertas = total_pagos_verificados
+
+    # Verificación adicional: si saldo_actual del CRM es $0.00 o $ 0,00,
+    # el cliente está al día → todas las cuotas cicladas están cubiertas.
+    saldo_actual_num = parse_currency(data.get("saldo_actual", "$0.00"))
+    cliente_al_dia_por_saldo = (saldo_actual_num == 0.0)
+    # ──────────────────────────────────────────────────────────────────────────
+
     classified = []
     cicladas_count = 0
     mora_cuotas = []
@@ -192,7 +220,12 @@ def analyze_and_classify_movements(data):
 
             if es_ciclada:
                 cicladas_count += 1
-                if cuota_num <= total_pagos_verificados:
+                # CORRECCIÓN: usar cuotas_cubiertas (calculado por monto acumulado)
+                # en lugar de total_pagos_verificados (conteo de transacciones).
+                # Adicionalmente, si el CRM reporta saldo_actual = $0.00,
+                # el cliente está al día sin importar el conteo de cuotas.
+                cuota_cubierta = (cuota_num <= cuotas_cubiertas) or cliente_al_dia_por_saldo
+                if cuota_cubierta:
                     tipo = "CICLADA"
                     estado_txt = "Registrada"
                     row_type = "ciclada_pagada"
@@ -250,7 +283,7 @@ def analyze_and_classify_movements(data):
             mora_subtitle = f"Mora Pendiente ({', '.join(mora_cuotas)})"
             mora_lista_str = f"Las **{', '.join(mora_cuotas[:-1])} y {mora_cuotas[-1]}**"
         
-        cubiertas_txt = f" (cubriendo las Cuotas 1 a {total_pagos_verificados})" if total_pagos_verificados > 0 else ""
+        cubiertas_txt = f" (cubriendo las Cuotas 1 a {cuotas_cubiertas})" if cuotas_cubiertas > 0 else ""
         revision_texto = (
             f"A la fecha de consulta ({f_cons_str}), han ciclado {cicladas_count} cuotas (Cuota 1 a Cuota {cicladas_count}). "
             f"El cliente registra {total_pagos_verificados} pago(s) verificado(s) por un total de **{total_pagado_str}**{cubiertas_txt}. "
