@@ -329,10 +329,22 @@ def render_html_report(data, analysis):
     classified = analysis["classified"]
 
     total_movs = len(classified)
-    split_p1 = min(13, total_movs)
-    p1_rows = classified[:split_p1]
-    p2_rows = classified[split_p1:]
-    num_pages = 2 if len(p2_rows) > 0 else 1
+    
+    # ── DISTRIBUCIÓN DINÁMICA INTELIGENTE ─────────────────────────────────
+    # Si las cuotas y pagos caben en 1 sola hoja (hasta 20 movimientos),
+    # no desperdiciar espacio en blanco y mantener todo en 1 sola página.
+    if total_movs <= 20:
+        split_p1 = total_movs
+        p1_rows = classified
+        p2_rows = []
+        num_pages = 1
+        sec1_title = "HISTORIAL DETALLADO DE MOVIMIENTOS"
+    else:
+        split_p1 = min(18, total_movs)
+        p1_rows = classified[:split_p1]
+        p2_rows = classified[split_p1:]
+        num_pages = 2
+        sec1_title = f"HISTORIAL DETALLADO DE MOVIMIENTOS (PARTE 1: MOVIMIENTOS 1 AL {len(p1_rows)})"
 
     def render_rows(rows_subset):
         html_rows = []
@@ -755,7 +767,7 @@ def render_html_report(data, analysis):
         </div>
 
         <div class="section-bar">
-            <span class="section-title">HISTORIAL DETALLADO DE MOVIMIENTOS (PARTE 1: MOVIMIENTOS 1 AL {len(p1_rows)})</span>
+            <span class="section-title">{sec1_title}</span>
             <span class="section-sub">Orden original del calendario</span>
         </div>
 
@@ -775,6 +787,12 @@ def render_html_report(data, analysis):
                 {render_rows(p1_rows)}
             </tbody>
         </table>
+
+        {f'''
+        <div class="revision-box">
+            <div class="revision-title">REVISIÓN DE SOPORTE</div>
+            <div class="revision-body">{revision_texto}</div>
+        </div>''' if num_pages == 1 else ""}
 
         <div class="page-footer">
             <span>Página 1 de {num_pages}</span>
@@ -990,9 +1008,21 @@ def generate_pdf_reportlab(data, analysis, output_pdf_path):
     story.append(Spacer(1, 8))
 
     classified = analysis['classified']
-    split_p1 = min(13, len(classified))
-    p1_rows = classified[:split_p1]
-    p2_rows = classified[split_p1:]
+    total_movs = len(classified)
+
+    # ── DISTRIBUCIÓN DINÁMICA INTELIGENTE ─────────────────────────────────
+    # Si las cuotas y pagos caben en 1 sola hoja (hasta 20 movimientos),
+    # no desperdiciar espacio en blanco y mantener todo en 1 sola página.
+    if total_movs <= 20:
+        split_p1 = total_movs
+        p1_rows = classified
+        p2_rows = []
+        sec1_title_text = "HISTORIAL DETALLADO DE MOVIMIENTOS"
+    else:
+        split_p1 = min(18, total_movs)
+        p1_rows = classified[:split_p1]
+        p2_rows = classified[split_p1:]
+        sec1_title_text = f"HISTORIAL DETALLADO DE MOVIMIENTOS (PARTE 1: MOVIMIENTOS 1 AL {len(p1_rows)})"
 
     def build_tbl_data(rows_subset):
         t_data = [[
@@ -1042,7 +1072,7 @@ def generate_pdf_reportlab(data, analysis, output_pdf_path):
         return t_data
 
     sec1 = Table([
-        [Paragraph(f"HISTORIAL DETALLADO DE MOVIMIENTOS (PARTE 1: MOVIMIENTOS 1 AL {len(p1_rows)})", sec_title),
+        [Paragraph(sec1_title_text, sec_title),
          Paragraph("Orden original del calendario", sec_sub)]
     ], colWidths=[350, 170])
     sec1.setStyle(TableStyle([
@@ -1070,7 +1100,31 @@ def generate_pdf_reportlab(data, analysis, output_pdf_path):
     dt1.setStyle(TableStyle(dt1_styles))
     story.append(dt1)
 
-    if p2_rows:
+    # Cuadro de revisión de soporte común
+    clean_rev = analysis['revision_texto'].replace('**', '')
+    rev_table = Table([
+        [
+            Paragraph("<b>REVISIÓN DE SOPORTE</b>", ParagraphStyle('RevT', fontName='Helvetica-Bold', fontSize=7.5, textColor=colors.HexColor('#be123c'))),
+        ],
+        [
+            Paragraph(clean_rev, ParagraphStyle('RevB', fontName='Helvetica', fontSize=7, leading=10, textColor=colors.HexColor('#334155')))
+        ]
+    ], colWidths=[520])
+    rev_table.setStyle(TableStyle([
+        ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#fff1f2')),
+        ('LINELEFT', (0,0), (-1,-1), 3, colors.HexColor('#dc2626')),
+        ('TOPPADDING', (0,0), (-1,-1), 4),
+        ('BOTTOMPADDING', (0,0), (-1,-1), 4),
+        ('LEFTPADDING', (0,0), (-1,-1), 8),
+        ('RIGHTPADDING', (0,0), (-1,-1), 8),
+    ]))
+
+    if not p2_rows:
+        # 1 SOLA HOJA: Revisión de soporte en la misma página 1
+        story.append(Spacer(1, 10))
+        story.append(rev_table)
+    else:
+        # 2 HOJAS: Página 2 con movimientos restantes + revisión de soporte
         story.append(PageBreak())
         
         h2 = Table([
@@ -1112,24 +1166,6 @@ def generate_pdf_reportlab(data, analysis, output_pdf_path):
         dt2.setStyle(TableStyle(dt2_styles))
         story.append(dt2)
         story.append(Spacer(1, 10))
-
-        clean_rev = analysis['revision_texto'].replace('**', '')
-        rev_table = Table([
-            [
-                Paragraph("<b>REVISIÓN DE SOPORTE</b>", ParagraphStyle('RevT', fontName='Helvetica-Bold', fontSize=7.5, textColor=colors.HexColor('#be123c'))),
-            ],
-            [
-                Paragraph(clean_rev, ParagraphStyle('RevB', fontName='Helvetica', fontSize=7, leading=10, textColor=colors.HexColor('#334155')))
-            ]
-        ], colWidths=[520])
-        rev_table.setStyle(TableStyle([
-            ('BACKGROUND', (0,0), (-1,-1), colors.HexColor('#fff1f2')),
-            ('LINELEFT', (0,0), (-1,-1), 3, colors.HexColor('#dc2626')),
-            ('TOPPADDING', (0,0), (-1,-1), 4),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-            ('LEFTPADDING', (0,0), (-1,-1), 8),
-            ('RIGHTPADDING', (0,0), (-1,-1), 8),
-        ]))
         story.append(rev_table)
 
     doc.build(story, canvasmaker=NumberedCanvas)
@@ -1408,7 +1444,10 @@ def procesar_cronograma(pdf_input, output_pdf_path=None, generar_imagen=False,
     Retorna ResultadoProceso compatible como diccionario y como tupla
     (pdf_path, html_code, data, analysis).
     """
-    data = extract_cronograma_data(pdf_input)
+    if isinstance(pdf_input, dict):
+        data = pdf_input
+    else:
+        data = extract_cronograma_data(pdf_input)
     analysis = analyze_and_classify_movements(data)
     html_code = render_html_report(data, analysis)
 
