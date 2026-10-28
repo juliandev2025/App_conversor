@@ -221,6 +221,7 @@ HTML_INTERFACE = """<!DOCTYPE html>
             gap: 10px;
             margin-bottom: 16px;
             flex-wrap: wrap;
+            align-items: center;
         }
         .btn-action {
             padding: 10px 16px;
@@ -235,14 +236,45 @@ HTML_INTERFACE = """<!DOCTYPE html>
             text-decoration: none;
             transition: all 0.2s;
         }
-        .btn-print { background: var(--primary); color: #ffffff; }
-        .btn-print:hover { background: var(--primary-dark); }
-        .btn-pdf { background: #0f172a; color: #ffffff; }
-        .btn-pdf:hover { background: #1e293b; }
-        .btn-html { background: #ffffff; color: var(--slate-700); border: 1px solid #cbd5e1; }
-        .btn-html:hover { background: var(--slate-50); }
-        .btn-reset { background: transparent; color: var(--slate-500); border: 1px solid transparent; }
-        .btn-reset:hover { color: var(--slate-900); }
+        .btn-open-pdf { background: #0052cc; color: #ffffff; }
+        .btn-open-pdf:hover { background: #0041a8; }
+        .btn-open-img { background: #7c3aed; color: #ffffff; }
+        .btn-open-img:hover { background: #6d28d9; }
+        .btn-download-pdf { background: #0f172a; color: #ffffff; }
+        .btn-download-pdf:hover { background: #1e293b; }
+        .btn-download-img { background: #16a34a; color: #ffffff; }
+        .btn-download-img:hover { background: #15803d; }
+        .btn-download-txt { background: #475569; color: #ffffff; }
+        .btn-download-txt:hover { background: #334155; }
+        .btn-reset { background: transparent; color: var(--slate-500); border: 1px solid var(--slate-200); }
+        .btn-reset:hover { color: var(--slate-900); background: #ffffff; }
+
+        .options-bar {
+            background: #ffffff;
+            border: 1px solid var(--slate-200);
+            border-radius: 8px;
+            padding: 12px 18px;
+            margin-bottom: 16px;
+            display: flex;
+            gap: 24px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .chk-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--slate-700);
+            cursor: pointer;
+        }
+        .chk-option input[type="checkbox"] {
+            width: 17px;
+            height: 17px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
 
         .preview-box {
             background: #ffffff;
@@ -305,6 +337,17 @@ HTML_INTERFACE = """<!DOCTYPE html>
     </header>
 
     <main>
+        <!-- Opciones de Apertura Automática -->
+        <div class="options-bar">
+            <span style="font-size: 13px; font-weight: 700; color: var(--slate-900);">⚡ Al procesar:</span>
+            <label class="chk-option">
+                <input type="checkbox" id="chkAutoPdf" checked> 📄 Abrir PDF en nueva pestaña automáticamente
+            </label>
+            <label class="chk-option">
+                <input type="checkbox" id="chkAutoImg" checked> 🖼️ Abrir Imagen en nueva pestaña automáticamente
+            </label>
+        </div>
+
         <!-- Card para Subir Archivo -->
         <div class="upload-card" id="dropZone" onclick="document.getElementById('fileInput').click()">
             <div class="upload-icon">📂</div>
@@ -316,7 +359,7 @@ HTML_INTERFACE = """<!DOCTYPE html>
 
         <div id="loading">
             <div class="spinner-ring"></div>
-            <div>Analizando cuotas, pagos y generando reporte oficial...</div>
+            <div>Analizando cuotas, pagos y generando reporte oficial en PDF e Imagen HD...</div>
         </div>
 
         <!-- Área de Resultados -->
@@ -352,11 +395,20 @@ HTML_INTERFACE = """<!DOCTYPE html>
             </div>
 
             <div class="action-bar">
-                <button class="btn-action btn-print" onclick="printReport()">
-                    🖨️ Imprimir / Guardar como PDF
+                <button class="btn-action btn-open-pdf" onclick="openPdfNewTab()" title="Abre el PDF en una nueva pestaña del navegador">
+                    📄 Abrir PDF (Nueva Pestaña)
                 </button>
-                <button class="btn-action btn-pdf" onclick="downloadServerPdf()">
-                    📥 Descargar PDF (ReportLab)
+                <button class="btn-action btn-open-img" onclick="openImageNewTab(0)" title="Abre la Imagen HD en una nueva pestaña del navegador">
+                    🖼️ Abrir Imagen HD (Nueva Pestaña)
+                </button>
+                <button class="btn-action btn-download-pdf" onclick="downloadServerPdf()">
+                    📥 Descargar PDF
+                </button>
+                <button class="btn-action btn-download-img" id="btnDlImg" onclick="downloadServerImage(0)">
+                    🖼️ Descargar Imagen
+                </button>
+                <button class="btn-action btn-download-txt" onclick="downloadServerTxt()">
+                    📝 Descargar TXT
                 </button>
                 <button class="btn-action btn-html" onclick="downloadHtml()">
                     🌐 Descargar HTML
@@ -471,23 +523,45 @@ HTML_INTERFACE = """<!DOCTYPE html>
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('resultsArea').style.display = 'block';
 
+                // Si la casilla de apertura automatica esta activa, abrir en nueva pestana
+                const autoPdf = document.getElementById('chkAutoPdf') && document.getElementById('chkAutoPdf').checked;
+                const autoImg = document.getElementById('chkAutoImg') && document.getElementById('chkAutoImg').checked;
+                if (autoPdf) {
+                    setTimeout(() => openPdfNewTab(), 100);
+                }
+                if (autoImg) {
+                    setTimeout(() => openImageNewTab(0), 300);
+                }
+
             } catch (err) {
                 document.getElementById('loading').style.display = 'none';
                 alert("Error: " + err.message);
             }
         }
 
-        function printReport() {
-            const frame = document.getElementById('previewFrame');
-            if (frame && frame.contentWindow) {
-                frame.contentWindow.focus();
-                frame.contentWindow.print();
-            }
+        function openPdfNewTab() {
+            if (!currentContract) return;
+            window.open(`/api/view_pdf?contract=${encodeURIComponent(currentContract)}`, '_blank');
         }
 
-        async function downloadServerPdf() {
+        function openImageNewTab(page = 0) {
+            if (!currentContract) return;
+            window.open(`/api/view_image?contract=${encodeURIComponent(currentContract)}&page=${page}`, '_blank');
+        }
+
+        function downloadServerPdf() {
             if (!currentContract) return;
             window.location.href = `/api/download_pdf?contract=${encodeURIComponent(currentContract)}`;
+        }
+
+        function downloadServerImage(page = 0) {
+            if (!currentContract) return;
+            window.location.href = `/api/download_image?contract=${encodeURIComponent(currentContract)}&page=${page}`;
+        }
+
+        function downloadServerTxt() {
+            if (!currentContract) return;
+            window.location.href = `/api/download_txt?contract=${encodeURIComponent(currentContract)}`;
         }
 
         function downloadHtml() {
@@ -539,14 +613,38 @@ def convert_cronograma():
         pdf_buffer = io.BytesIO()
         conversor_core.generate_pdf_reportlab(data, analysis, pdf_buffer)
         pdf_buffer.seek(0)
+        pdf_bytes = pdf_buffer.getvalue()
 
         # Guardar en caché rápida para descarga directa con nombre institucional
         contract_key = data.get("contrato", "reporte")
         report_base = conversor_core.build_report_basename(data)
+
+        # Generar imágenes PNG en memoria (200 DPI) con pypdfium2
+        images_list = []
+        filenames_images = []
+        try:
+            import pypdfium2 as pdfium
+            doc = pdfium.PdfDocument(pdf_bytes)
+            for idx, page in enumerate(doc):
+                img_buf = io.BytesIO()
+                page.render(scale=200/72).to_pil().save(img_buf, format="PNG")
+                images_list.append(img_buf.getvalue())
+                filenames_images.append(f"{report_base}_pagina_{idx+1}.png")
+            doc.close()
+        except Exception as e_img:
+            print("Aviso al generar imágenes:", e_img)
+
+        # Generar texto plano
+        txt_content = conversor_core.generate_txt_report(data, analysis)
+
         LAST_PROCESSED[contract_key] = {
-            "pdf_bytes": pdf_buffer.getvalue(),
+            "pdf_bytes": pdf_bytes,
             "data": data,
-            "filename": f"{report_base}.pdf"
+            "filename_pdf": f"{report_base}.pdf",
+            "images": images_list,
+            "filename_images": filenames_images,
+            "txt_content": txt_content,
+            "filename_txt": f"{report_base}.txt"
         }
 
         return jsonify({
@@ -560,11 +658,39 @@ def convert_cronograma():
                 "mora_subtitle": analysis["mora_subtitle"],
                 "revision_texto": analysis["revision_texto"]
             },
-            "html": html_content
+            "html": html_content,
+            "basename": report_base,
+            "num_images": len(images_list)
         })
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route("/api/view_pdf", methods=["GET"])
+def view_pdf():
+    contract_key = request.args.get("contract", "reporte")
+    item = LAST_PROCESSED.get(contract_key)
+    if not item:
+        return "El archivo no se encuentra en memoria. Por favor vuelve a procesar el cronograma.", 404
+
+    resp = Response(item["pdf_bytes"], mimetype="application/pdf")
+    resp.headers["Content-Disposition"] = f'inline; filename="{item["filename_pdf"]}"'
+    return resp
+
+@app.route("/api/view_image", methods=["GET"])
+def view_image():
+    contract_key = request.args.get("contract", "reporte")
+    page_idx = int(request.args.get("page", 0))
+    item = LAST_PROCESSED.get(contract_key)
+    if not item or "images" not in item or not item["images"]:
+        return "No hay imagen disponible.", 404
+
+    if page_idx >= len(item["images"]):
+        page_idx = 0
+
+    resp = Response(item["images"][page_idx], mimetype="image/png")
+    resp.headers["Content-Disposition"] = f'inline; filename="{item["filename_images"][page_idx]}"'
+    return resp
 
 @app.route("/api/download_pdf", methods=["GET"])
 def download_pdf():
@@ -577,7 +703,39 @@ def download_pdf():
         io.BytesIO(item["pdf_bytes"]),
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=item["filename"]
+        download_name=item["filename_pdf"]
+    )
+
+@app.route("/api/download_image", methods=["GET"])
+def download_image():
+    contract_key = request.args.get("contract", "reporte")
+    page_idx = int(request.args.get("page", 0))
+    item = LAST_PROCESSED.get(contract_key)
+    if not item or "images" not in item or not item["images"]:
+        return "No hay imagen disponible.", 404
+
+    if page_idx >= len(item["images"]):
+        page_idx = 0
+
+    return send_file(
+        io.BytesIO(item["images"][page_idx]),
+        mimetype="image/png",
+        as_attachment=True,
+        download_name=item["filename_images"][page_idx]
+    )
+
+@app.route("/api/download_txt", methods=["GET"])
+def download_txt():
+    contract_key = request.args.get("contract", "reporte")
+    item = LAST_PROCESSED.get(contract_key)
+    if not item or "txt_content" not in item:
+        return "No hay archivo TXT disponible.", 404
+
+    return send_file(
+        io.BytesIO(item["txt_content"].encode("utf-8-sig")),
+        mimetype="text/plain",
+        as_attachment=True,
+        download_name=item["filename_txt"]
     )
 
 # Para ejecución local con 'python api/index.py'

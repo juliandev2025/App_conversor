@@ -185,7 +185,7 @@ class AppConversorGUI:
         # Auto-apertura del PDF al terminar
         self.auto_open_var = tk.BooleanVar(value=True)
         chk = tk.Checkbutton(action_box,
-                             text="Abrir el PDF automaticamente al finalizar la generacion",
+                             text="Abrir el PDF automaticamente en una nueva pestana del navegador",
                              variable=self.auto_open_var,
                              font=("Segoe UI", 8), bg="#f8fafc", activebackground="#f8fafc")
         chk.pack(anchor="w", pady=(0, 4))
@@ -199,7 +199,7 @@ class AppConversorGUI:
         self.export_img_var = tk.BooleanVar(value=False)
         chk_img = tk.Checkbutton(
             export_frame,
-            text="Imagen PNG de alta calidad (200 DPI) \u2014 misma presentacion visual que el PDF",
+            text="Imagen PNG de alta calidad (200 DPI) \u2014 se abrira automaticamente en el navegador",
             variable=self.export_img_var,
             font=("Segoe UI", 8), bg="#f8fafc", activebackground="#f8fafc"
         )
@@ -365,8 +365,11 @@ class AppConversorGUI:
 
             self.convert_btn.config(state=tk.NORMAL)
 
+            # Apertura automatica en nueva pestana del navegador
             if self.auto_open_var.get():
                 self.open_pdf()
+            if self.export_img_var.get() and self.generated_images:
+                self.open_image()
 
             messagebox.showinfo(
                 "Exito",
@@ -381,22 +384,28 @@ class AppConversorGUI:
             messagebox.showerror("Error al procesar", f"Ocurrio un error al procesar el archivo:\n\n{str(e)}")
 
     def open_pdf(self):
-        """Abre el PDF en el visor predeterminado del sistema."""
+        """Abre el PDF en una nueva pestana del navegador predeterminado."""
         if self.generated_pdf and os.path.exists(self.generated_pdf):
             try:
-                os.startfile(self.generated_pdf)
-            except Exception as e:
-                messagebox.showerror("Error", f"No se pudo abrir el archivo: {e}")
+                import webbrowser
+                abs_p = os.path.abspath(self.generated_pdf).replace("\\", "/")
+                webbrowser.open_new_tab(f"file:///{abs_p}")
+            except Exception:
+                try: os.startfile(self.generated_pdf)
+                except Exception as e: messagebox.showerror("Error", f"No se pudo abrir el archivo: {e}")
 
     def open_image(self):
-        """Abre la(s) imagen(es) PNG generadas en el visor predeterminado del sistema."""
+        """Abre cada imagen PNG generada en una nueva pestana del navegador predeterminado."""
         if self.generated_images:
+            import webbrowser
             for img_path in self.generated_images:
                 if os.path.exists(img_path):
                     try:
-                        os.startfile(img_path)
-                    except Exception as e:
-                        messagebox.showerror("Error", f"No se pudo abrir la imagen: {e}")
+                        abs_p = os.path.abspath(img_path).replace("\\", "/")
+                        webbrowser.open_new_tab(f"file:///{abs_p}")
+                    except Exception:
+                        try: os.startfile(img_path)
+                        except Exception as e: messagebox.showerror("Error", f"No se pudo abrir la imagen: {e}")
         else:
             messagebox.showinfo("Info", "No se genero imagen. Marca la opcion antes de convertir.")
 

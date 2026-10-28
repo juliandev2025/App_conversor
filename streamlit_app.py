@@ -182,6 +182,30 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
         st.write("")
+        # Botones para abrir directamente en nueva pestaña del navegador
+        st.write("#### ⚡ Acceso Rápido (Nueva Pestaña del Navegador)")
+        open_c1, open_c2 = st.columns(2)
+        with open_c1:
+            import base64
+            b64_pdf = base64.b64encode(pdf_bytes).decode()
+            st.markdown(
+                f'<a href="data:application/pdf;base64,{b64_pdf}" target="_blank" '
+                f'style="display:block;padding:10px 16px;background:#0052cc;color:#ffffff;border-radius:6px;font-weight:700;text-decoration:none;text-align:center;">'
+                f'📄 Abrir PDF Oficial en Nueva Pestaña</a>',
+                unsafe_allow_html=True
+            )
+        with open_c2:
+            if image_bytes_list:
+                import base64
+                b64_img = base64.b64encode(image_bytes_list[0][1]).decode()
+                st.markdown(
+                    f'<a href="data:image/png;base64,{b64_img}" target="_blank" '
+                    f'style="display:block;padding:10px 16px;background:#7c3aed;color:#ffffff;border-radius:6px;font-weight:700;text-decoration:none;text-align:center;">'
+                    f'🖼️ Abrir Imagen HD en Nueva Pestaña</a>',
+                    unsafe_allow_html=True
+                )
+
+        st.write("")
         # Fila de botones de descarga
         st.write("#### 💾 Opciones de Descarga")
         report_base = conversor_core.build_report_basename(data)
