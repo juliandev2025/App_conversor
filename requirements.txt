@@ -1,0 +1,4 @@
+pdfplumber>=0.11.0
+streamlit>=1.30.0
+pypdfium2>=4.0.0
+Pillow>=10.0.0

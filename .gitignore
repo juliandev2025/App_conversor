@@ -1,0 +1,28 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Caches and logs
+.pytest_cache/
+*.log
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+
+# Temporary generated files
+*.temp.html
+Reporte_Estado_Cuenta_coyrmfg.pdf
+cronograma_*_p1.png
+cronograma_*_p2.png
+cronograma_*_reporte.html
+cronograma_*_reporte.pdf
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
