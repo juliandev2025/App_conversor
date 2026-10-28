@@ -97,4 +97,11 @@ def main():
         process_single_file(pdf_file, open_when_done=True)
 
 if __name__ == "__main__":
-    main()
+    import os
+    # Si corre en Streamlit Cloud o en un servidor Linux sin pantalla gráfica
+    if os.environ.get("STREAMLIT_SERVER_PORT") or not os.environ.get("DISPLAY"):
+        import streamlit_app
+    else:
+        # En tu computadora con Windows abre la ventana de escritorio
+        import app_gui
+        app_gui.main()
