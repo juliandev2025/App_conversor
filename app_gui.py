@@ -17,6 +17,11 @@ from tkinter import ttk, filedialog, messagebox  # Widgets modernos (ttk), selec
 
 # Importa el motor que contiene la logica de extraccion, analisis financiero y compilacion del PDF.
 import conversor_core
+try:
+    import logo_data
+    from PIL import Image, ImageTk
+except ImportError:
+    logo_data = None
 
 
 # ==========================================
@@ -29,11 +34,21 @@ class AppConversorGUI:
         colores de fondo y ejecuta la construccion grafica de los elementos.
         """
         self.root = root
-        self.root.title("App Conversor - Estado de Cuenta Ejecutivo")
+        self.root.title("KrediYA - App Conversor de Cronogramas")
+
+        # Icono de la ventana
+        self.icon_tk = None
+        self.logo_tk = None
+        if logo_data:
+            try:
+                self.icon_tk = ImageTk.PhotoImage(logo_data.get_krediya_logo_pil())
+                self.root.iconphoto(False, self.icon_tk)
+            except Exception:
+                pass
 
         # Dimensiones iniciales y limites minimos para que la ventana no se deforme al redimensionar
-        self.root.geometry("660x660")
-        self.root.minsize(600, 580)
+        self.root.geometry("680x680")
+        self.root.minsize(620, 600)
         self.root.configure(bg="#f8fafc")  # Fondo gris neutro claro moderno
 
         # Variables internas de estado de la aplicacion
@@ -92,18 +107,40 @@ class AppConversorGUI:
         4. Opciones de exportacion (PDF + imagen + TXT).
         5. Barra de estado y acciones finales.
         """
-        # --- ENCABEZADO SUPERIOR AZUL ---
-        header = tk.Frame(self.root, bg="#0052cc", height=70)
+        # --- ENCABEZADO SUPERIOR CON LOGO KREDIYA ---
+        header = tk.Frame(self.root, bg="#ffffff", height=78, relief="solid", bd=1)
         header.pack(fill=tk.X, side=tk.TOP)
         header.pack_propagate(False)
 
-        title_lbl = tk.Label(header, text="   App Conversor de Cronogramas",
-                             font=("Segoe UI", 14, "bold"), bg="#0052cc", fg="#ffffff")
-        title_lbl.pack(anchor="w", padx=20, pady=(12, 2))
+        # Cargar logo de KrediYA a la izquierda
+        if logo_data:
+            try:
+                logo_pil = logo_data.get_krediya_logo_pil()
+                w, h = logo_pil.size
+                new_h = 38
+                new_w = int(w * (new_h / h))
+                logo_resized = logo_pil.resize((new_w, new_h), Image.Resampling.LANCZOS)
+                self.logo_tk = ImageTk.PhotoImage(logo_resized)
 
-        sub_lbl = tk.Label(header, text="Generador de Reportes Ejecutivos Oficiales (Formato Plantilla)",
-                           font=("Segoe UI", 8), bg="#0052cc", fg="#bfdbfe")
-        sub_lbl.pack(anchor="w", padx=20)
+                logo_lbl = tk.Label(header, image=self.logo_tk, bg="#ffffff")
+                logo_lbl.pack(side=tk.LEFT, padx=(20, 14), pady=12)
+
+                # Divisor vertical elegante
+                sep = tk.Frame(header, bg="#cbd5e1", width=1, height=40)
+                sep.pack(side=tk.LEFT, fill=tk.Y, pady=18, padx=(0, 14))
+            except Exception:
+                self.logo_tk = None
+
+        text_frame = tk.Frame(header, bg="#ffffff")
+        text_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=14)
+
+        title_lbl = tk.Label(text_frame, text="App Conversor de Cronogramas",
+                             font=("Segoe UI", 13, "bold"), bg="#ffffff", fg="#0f172a")
+        title_lbl.pack(anchor="w")
+
+        sub_lbl = tk.Label(text_frame, text="Estado de Cuenta Ejecutivo - Formato Institucional",
+                           font=("Segoe UI", 8), bg="#ffffff", fg="#64748b")
+        sub_lbl.pack(anchor="w")
 
         # --- CONTENEDOR CENTRAL ---
         main_frame = tk.Frame(self.root, bg="#f8fafc", padx=20, pady=15)

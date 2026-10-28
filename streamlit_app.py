@@ -10,6 +10,10 @@ import os
 import tempfile
 import streamlit as st
 import conversor_core
+try:
+    import logo_data
+except ImportError:
+    logo_data = None
 
 st.set_page_config(
     page_title="App Conversor - Estado de Cuenta",
@@ -67,8 +71,17 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-title">📄 App Conversor de Cronogramas</div>', unsafe_allow_html=True)
-st.markdown('<div class="sub-title">Convierte cronogramas del CRM en Estados de Cuenta Ejecutivos detallados (PDF Oficial, Imagen PNG y TXT).</div>', unsafe_allow_html=True)
+# Encabezado con Logo oficial KrediYA
+col_logo, col_title = st.columns([1.2, 4.8])
+with col_logo:
+    logo_path = os.path.join(os.path.dirname(__file__), "assets", "krediya_logo.png")
+    if os.path.exists(logo_path):
+        st.image(logo_path, use_container_width=True)
+    elif logo_data:
+        st.image(logo_data.get_krediya_logo_bytes(), use_container_width=True)
+with col_title:
+    st.markdown('<div class="main-title">App Conversor de Cronogramas</div>', unsafe_allow_html=True)
+    st.markdown('<div class="sub-title">Convierte cronogramas del CRM en Estados de Cuenta Ejecutivos detallados (PDF Oficial, Imagen PNG y TXT).</div>', unsafe_allow_html=True)
 
 uploaded_files = st.file_uploader(
     "Sube uno o varios archivos PDF de Cronograma (`cronograma_*.pdf`)",

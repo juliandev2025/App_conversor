@@ -19,6 +19,11 @@ if CURRENT_DIR not in sys.path:
     sys.path.insert(0, CURRENT_DIR)
 
 import conversor_core
+try:
+    import logo_data
+    KREDIYA_LOGO_DATA_URI = logo_data.KREDIYA_LOGO_DATA_URI
+except Exception:
+    KREDIYA_LOGO_DATA_URI = ""
 
 app = Flask(__name__)
 
@@ -285,8 +290,13 @@ HTML_INTERFACE = """<!DOCTYPE html>
 <body>
     <header>
         <div class="brand">
+            {% if logo_uri %}
+            <img src="{{ logo_uri }}" alt="KrediYA" style="height: 38px; width: auto; object-fit: contain; margin-right: 14px;">
+            <div style="border-left: 1px solid var(--slate-200); padding-left: 16px;">
+            {% else %}
             <div class="brand-logo">📄</div>
             <div>
+            {% endif %}
                 <div class="brand-title">App Conversor de Cronogramas</div>
                 <div class="brand-sub">Estado de Cuenta Ejecutivo - Formato Institucional</div>
             </div>
@@ -508,7 +518,7 @@ LAST_PROCESSED = {}
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template_string(HTML_INTERFACE)
+    return render_template_string(HTML_INTERFACE, logo_uri=KREDIYA_LOGO_DATA_URI)
 
 @app.route("/api/convert", methods=["POST"])
 def convert_cronograma():
