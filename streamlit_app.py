@@ -24,49 +24,67 @@ st.set_page_config(
 # Estilos CSS ejecutivos para la interfaz web
 st.markdown("""
 <style>
+    /* Estilo Liquid Glass Premium & Fondo Dark Blue-Grey */
+    .stApp {
+        background-color: #0b0f19 !important;
+        background-image: 
+            radial-gradient(ellipse 90% 60% at 50% -15%, #152238 0%, transparent 80%),
+            radial-gradient(circle at 100% 100%, #0d1527 0%, transparent 50%),
+            linear-gradient(180deg, #090d16 0%, #0b0f19 50%, #080c14 100%) !important;
+        color: #f8fafc !important;
+    }
     .main-title {
         font-size: 26px;
         font-weight: 800;
-        color: #0052cc;
-        margin-bottom: 2px;
+        color: #ffffff;
+        letter-spacing: -0.02em;
+        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
     }
     .sub-title {
         font-size: 14px;
-        color: #475569;
+        color: #94a3b8;
         margin-bottom: 20px;
     }
     .metric-card-cicladas {
-        background-color: #eff6ff;
-        border: 1px solid #bfdbfe;
-        border-radius: 8px;
+        background: rgba(14, 165, 233, 0.08);
+        border: 1px solid rgba(56, 189, 248, 0.25);
+        border-radius: 12px;
         padding: 14px;
         text-align: center;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
     .metric-card-pagos {
-        background-color: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 8px;
+        background: rgba(34, 197, 94, 0.08);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        border-radius: 12px;
         padding: 14px;
         text-align: center;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
     .metric-card-mora {
-        background-color: #fef2f2;
-        border: 1px solid #fecaca;
-        border-radius: 8px;
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(248, 113, 113, 0.35);
+        border-radius: 12px;
         padding: 14px;
         text-align: center;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
     .metric-card-ok {
-        background-color: #f0fdf4;
-        border: 1px solid #bbf7d0;
-        border-radius: 8px;
+        background: rgba(34, 197, 94, 0.08);
+        border: 1px solid rgba(74, 222, 128, 0.25);
+        border-radius: 12px;
         padding: 14px;
         text-align: center;
+        backdrop-filter: blur(20px);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
     }
-    .metric-val-blue { font-size: 26px; font-weight: 800; color: #0284c7; }
-    .metric-val-green { font-size: 26px; font-weight: 800; color: #16a34a; }
-    .metric-val-red { font-size: 26px; font-weight: 800; color: #dc2626; }
-    .metric-lbl { font-size: 11px; font-weight: 700; color: #475569; text-transform: uppercase; }
+    .metric-val-blue { font-size: 26px; font-weight: 800; color: #38bdf8; text-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
+    .metric-val-green { font-size: 26px; font-weight: 800; color: #4ade80; text-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
+    .metric-val-red { font-size: 26px; font-weight: 800; color: #f87171; text-shadow: 0 0 15px rgba(248, 113, 113, 0.4); }
+    .metric-lbl { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
     .metric-sub { font-size: 11px; color: #64748b; margin-top: 3px; }
 </style>
 """, unsafe_allow_html=True)

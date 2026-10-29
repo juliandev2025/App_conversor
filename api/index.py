@@ -40,30 +40,131 @@ HTML_INTERFACE = """<!DOCTYPE html>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
-            --primary: #0052cc;
-            --primary-dark: #0747a6;
-            --success: #16a34a;
-            --danger: #dc2626;
-            --slate-900: #0f172a;
-            --slate-700: #334155;
-            --slate-500: #64748b;
-            --slate-200: #e2e8f0;
-            --slate-100: #f1f5f9;
-            --slate-50: #f8fafc;
+            --primary: #0066ff;
+            --primary-dark: #0052cc;
+            --accent-cyan: #38bdf8;
+            --accent-purple: #a855f7;
+            --accent-emerald: #4ade80;
+            --accent-rose: #f87171;
+            --bg-dark: #0b0f19;
+            --glass-bg: rgba(17, 24, 39, 0.58);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --glass-border-hover: rgba(56, 189, 248, 0.45);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-dim: #64748b;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
+        
         body {
             font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background: #f1f5f9;
-            color: var(--slate-900);
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(ellipse 90% 60% at 50% -15%, #152238 0%, transparent 80%),
+                radial-gradient(circle at 100% 100%, #0d1527 0%, transparent 50%),
+                linear-gradient(180deg, #090d16 0%, #0b0f19 50%, #080c14 100%);
+            background-attachment: fixed;
+            color: var(--text-main);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
         }
+
+        /* ── Orbes de Iluminación Ambientales (Liquid Glass Glow) ── */
+        .ambient-orbs-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(105px);
+            opacity: 0.5;
+            mix-blend-mode: screen;
+            animation-iteration-count: infinite;
+            animation-direction: alternate;
+            animation-timing-function: ease-in-out;
+        }
+        /* Orbe 1: Sapphire Electric Blue / Cyan (Superior Centro-Izquierda) */
+        .orb-1 {
+            width: 580px;
+            height: 580px;
+            top: -140px;
+            left: 12%;
+            background: radial-gradient(circle, rgba(0, 102, 255, 0.75) 0%, rgba(6, 182, 212, 0.4) 40%, rgba(0, 102, 255, 0) 70%);
+            animation: orbFloat1 20s infinite alternate;
+        }
+        /* Orbe 2: Deep Violet / Magenta Neon (Centro-Derecha) */
+        .orb-2 {
+            width: 640px;
+            height: 640px;
+            top: 20%;
+            right: -140px;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.65) 0%, rgba(217, 70, 239, 0.35) 40%, rgba(124, 58, 237, 0) 70%);
+            animation: orbFloat2 24s infinite alternate;
+            opacity: 0.42;
+        }
+        /* Orbe 3: Emerald Azure / Ocean Glow (Inferior Izquierda) */
+        .orb-3 {
+            width: 520px;
+            height: 520px;
+            bottom: -120px;
+            left: -80px;
+            background: radial-gradient(circle, rgba(14, 165, 233, 0.6) 0%, rgba(16, 185, 129, 0.3) 40%, rgba(14, 165, 233, 0) 70%);
+            animation: orbFloat3 22s infinite alternate;
+            opacity: 0.45;
+        }
+        /* Orbe 4: Resaltado sutil en el centro */
+        .orb-4 {
+            width: 440px;
+            height: 440px;
+            top: 50%;
+            left: 32%;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(99, 102, 241, 0.2) 45%, rgba(59, 130, 246, 0) 70%);
+            filter: blur(130px);
+            opacity: 0.3;
+            animation: orbFloat4 18s infinite alternate;
+        }
+
+        @keyframes orbFloat1 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(60px, 45px) scale(1.08); }
+            100% { transform: translate(-35px, 60px) scale(0.96); }
+        }
+        @keyframes orbFloat2 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-70px, 50px) scale(1.12); }
+            100% { transform: translate(-40px, -45px) scale(0.92); }
+        }
+        @keyframes orbFloat3 {
+            0% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(65px, -50px) scale(1.06); }
+            100% { transform: translate(35px, 30px) scale(0.95); }
+        }
+        @keyframes orbFloat4 {
+            0% { transform: translate(0, 0) scale(0.92); }
+            100% { transform: translate(-40px, 35px) scale(1.12); }
+        }
+
+        /* ── Header Liquid Glass ── */
         header {
-            background: #ffffff;
-            border-bottom: 1px solid var(--slate-200);
-            padding: 16px 24px;
+            position: relative;
+            z-index: 10;
+            background: rgba(11, 16, 28, 0.65);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            padding: 16px 28px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -71,227 +172,361 @@ HTML_INTERFACE = """<!DOCTYPE html>
         .brand {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+        }
+        .brand-logo-card {
+            background: rgba(255, 255, 255, 0.95);
+            padding: 4px 12px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.4);
         }
         .brand-logo {
-            width: 36px;
-            height: 36px;
-            background: var(--primary);
+            width: 38px;
+            height: 38px;
+            background: linear-gradient(135deg, #0066ff, #0047ba);
             color: #ffffff;
-            border-radius: 8px;
+            border-radius: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 20px;
             font-weight: 800;
+            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.35);
         }
         .brand-title {
-            font-size: 17px;
+            font-size: 18px;
             font-weight: 800;
-            color: var(--slate-900);
-            line-height: 1.2;
-        }
-        .brand-sub {
-            font-size: 12px;
-            color: var(--slate-500);
-            font-weight: 500;
+            color: #ffffff;
+            letter-spacing: -0.02em;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
         }
         .badge-cloud {
-            background: #e0f2fe;
-            color: #0284c7;
+            background: rgba(14, 165, 233, 0.15);
+            border: 1px solid rgba(56, 189, 248, 0.35);
+            color: #38bdf8;
             font-size: 11px;
             font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 20px;
+            padding: 6px 14px;
+            border-radius: 30px;
+            box-shadow: 0 0 20px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            letter-spacing: 0.02em;
         }
         
         main {
-            max-width: 1080px;
-            margin: 24px auto;
-            padding: 0 16px;
+            max-width: 1100px;
+            margin: 32px auto;
+            padding: 0 20px;
             width: 100%;
             flex: 1;
+            position: relative;
+            z-index: 2;
         }
 
-        /* Upload Card */
+        /* ── Card para Subir Archivo (Liquid Glass Hero Dropzone) ── */
         .upload-card {
-            background: #ffffff;
-            border: 2px dashed #cbd5e1;
-            border-radius: 12px;
-            padding: 36px 24px;
+            background: rgba(17, 24, 40, 0.55);
+            backdrop-filter: blur(24px) saturate(190%);
+            -webkit-backdrop-filter: blur(24px) saturate(190%);
+            border: 2px dashed rgba(255, 255, 255, 0.16);
+            border-radius: 20px;
+            padding: 48px 28px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.2s ease;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .upload-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 200%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+            transform: skewX(-20deg);
+            pointer-events: none;
+            transition: 0.6s ease;
+        }
+        .upload-card:hover::before {
+            left: 100%;
         }
         .upload-card:hover, .upload-card.dragover {
-            border-color: var(--primary);
-            background: #f8fafc;
+            border-color: #38bdf8;
+            background: rgba(22, 33, 55, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 25px 60px rgba(0, 102, 255, 0.25), 0 0 30px rgba(56, 189, 248, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
         .upload-icon {
-            font-size: 44px;
-            margin-bottom: 10px;
+            font-size: 48px;
+            margin-bottom: 12px;
+            filter: drop-shadow(0 4px 15px rgba(0, 0, 0, 0.5));
         }
         .upload-title {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 700;
-            color: var(--slate-900);
-            margin-bottom: 4px;
+            color: #ffffff;
+            margin-bottom: 6px;
+            letter-spacing: -0.01em;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
         }
         .upload-hint {
             font-size: 13px;
-            color: var(--slate-500);
-            margin-bottom: 14px;
+            color: #94a3b8;
+            margin-bottom: 18px;
+        }
+        .upload-hint code {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            padding: 3px 8px;
+            border-radius: 6px;
+            color: #e2e8f0;
+            font-size: 12px;
         }
         .btn-select {
-            background: var(--primary);
+            background: linear-gradient(135deg, #0066ff 0%, #0052cc 100%);
             color: #ffffff;
-            border: none;
-            padding: 9px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            padding: 11px 24px;
             font-size: 13px;
-            font-weight: 600;
-            border-radius: 6px;
+            font-weight: 700;
+            border-radius: 10px;
             cursor: pointer;
             display: inline-block;
-            transition: background 0.2s;
+            transition: all 0.25s ease;
+            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
         }
-        .btn-select:hover { background: var(--primary-dark); }
+        .btn-select:hover {
+            transform: translateY(-1px);
+            background: linear-gradient(135deg, #1a7bff 0%, #0060e6 100%);
+            box-shadow: 0 12px 30px rgba(0, 102, 255, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+        }
         #fileInput { display: none; }
 
-        /* Spinner */
+        /* ── Spinner ── */
         #loading {
             display: none;
-            margin: 20px 0;
+            margin: 28px 0;
             text-align: center;
             font-size: 14px;
-            color: var(--primary);
+            color: #38bdf8;
             font-weight: 600;
+            text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
         .spinner-ring {
             display: inline-block;
-            width: 28px;
-            height: 28px;
-            border: 3px solid rgba(0,82,204,0.2);
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(56, 189, 248, 0.15);
             border-radius: 50%;
-            border-top-color: var(--primary);
+            border-top-color: #38bdf8;
             animation: spin 0.8s linear infinite;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Results Area */
+        /* ── Área de Resultados ── */
         #resultsArea {
             display: none;
-            margin-top: 24px;
+            margin-top: 26px;
         }
 
         .client-banner {
-            background: #ffffff;
-            border: 1px solid var(--slate-200);
-            border-radius: 8px;
-            padding: 14px 18px;
+            background: rgba(17, 24, 40, 0.65);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px;
+            padding: 16px 22px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 14px;
+            margin-bottom: 16px;
+            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
-        .client-meta h3 { font-size: 16px; font-weight: 800; color: var(--slate-900); }
-        .client-meta p { font-size: 13px; color: var(--slate-500); }
+        .client-meta h3 {
+            font-size: 17px;
+            font-weight: 800;
+            color: #ffffff;
+            margin-bottom: 4px;
+            letter-spacing: -0.01em;
+        }
+        .client-meta p {
+            font-size: 13px;
+            color: #94a3b8;
+        }
 
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            margin-bottom: 16px;
+            gap: 14px;
+            margin-bottom: 18px;
         }
         .kpi-item {
-            border-radius: 8px;
-            padding: 12px 14px;
+            border-radius: 14px;
+            padding: 14px 16px;
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
-        .kpi-item.cicladas { background: #eff6ff; border: 1px solid #bfdbfe; }
-        .kpi-item.pagos { background: #f0fdf4; border: 1px solid #bbf7d0; }
-        .kpi-item.mora { background: #fef2f2; border: 1px solid #fecaca; }
-        .kpi-item.ok { background: #f0fdf4; border: 1px solid #bbf7d0; }
-        .kpi-title { font-size: 11px; font-weight: 700; text-transform: uppercase; color: var(--slate-700); margin-bottom: 2px; }
-        .kpi-val { font-size: 22px; font-weight: 800; line-height: 1.1; }
-        .kpi-val.blue { color: #0284c7; }
-        .kpi-val.green { color: var(--success); }
-        .kpi-val.red { color: var(--danger); }
-        .kpi-sub { font-size: 11px; color: var(--slate-500); margin-top: 4px; }
+        .kpi-item:hover {
+            transform: translateY(-2px);
+        }
+        .kpi-item.cicladas {
+            background: rgba(14, 165, 233, 0.08);
+            border: 1px solid rgba(56, 189, 248, 0.25);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .kpi-item.pagos {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(74, 222, 128, 0.25);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .kpi-item.mora {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(248, 113, 113, 0.35);
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .kpi-item.ok {
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(74, 222, 128, 0.25);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .kpi-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            margin-bottom: 4px;
+        }
+        .kpi-val {
+            font-size: 24px;
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+        }
+        .kpi-val.blue {
+            color: #38bdf8;
+            text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+        .kpi-val.green {
+            color: #4ade80;
+            text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+        }
+        .kpi-val.red {
+            color: #f87171;
+            text-shadow: 0 0 20px rgba(248, 113, 113, 0.4);
+        }
+        .kpi-sub {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 5px;
+        }
 
+        /* ── Action Bar con Botones Liquid Glass ── */
         .action-bar {
             display: flex;
             gap: 10px;
-            margin-bottom: 16px;
+            margin-bottom: 18px;
             flex-wrap: wrap;
             align-items: center;
         }
         .btn-action {
-            padding: 10px 16px;
+            padding: 11px 18px;
             font-size: 13px;
             font-weight: 700;
-            border-radius: 6px;
-            border: none;
+            border-radius: 10px;
+            border: 1px solid transparent;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
+            gap: 7px;
             text-decoration: none;
-            transition: all 0.2s;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            letter-spacing: -0.01em;
         }
-        .btn-open-pdf { background: #0052cc; color: #ffffff; }
-        .btn-open-pdf:hover { background: #0041a8; }
-        .btn-open-img { background: #7c3aed; color: #ffffff; }
-        .btn-open-img:hover { background: #6d28d9; }
-        .btn-download-pdf { background: #0f172a; color: #ffffff; }
-        .btn-download-pdf:hover { background: #1e293b; }
-        .btn-download-img { background: #16a34a; color: #ffffff; }
-        .btn-download-img:hover { background: #15803d; }
-        .btn-download-txt { background: #475569; color: #ffffff; }
-        .btn-download-txt:hover { background: #334155; }
-        .btn-reset { background: transparent; color: var(--slate-500); border: 1px solid var(--slate-200); }
-        .btn-reset:hover { color: var(--slate-900); background: #ffffff; }
-
-        .options-bar {
-            background: #ffffff;
-            border: 1px solid var(--slate-200);
-            border-radius: 8px;
-            padding: 12px 18px;
-            margin-bottom: 16px;
-            display: flex;
-            gap: 24px;
-            align-items: center;
-            flex-wrap: wrap;
+        .btn-action:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
         }
-        .chk-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            font-weight: 600;
-            color: var(--slate-700);
-            cursor: pointer;
-        }
-        .chk-option input[type="checkbox"] {
-            width: 17px;
-            height: 17px;
-            cursor: pointer;
-            accent-color: var(--primary);
+        .btn-action:active {
+            transform: translateY(0);
         }
 
+        .btn-open-pdf {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(29, 78, 216, 0.95));
+            border-color: rgba(96, 165, 250, 0.45);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .btn-open-img {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(109, 40, 217, 0.95));
+            border-color: rgba(192, 132, 252, 0.45);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .btn-download-pdf {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.18);
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        }
+        .btn-download-img {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.95));
+            border-color: rgba(110, 231, 183, 0.45);
+            color: #ffffff;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
+        }
+        .btn-download-txt {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.14);
+            color: #cbd5e1;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+        }
+        .btn-html {
+            background: rgba(14, 165, 233, 0.12);
+            border-color: rgba(56, 189, 248, 0.35);
+            color: #38bdf8;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .btn-reset {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.1);
+            color: #94a3b8;
+        }
+        .btn-reset:hover {
+            color: #ffffff;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* ── Preview Box Liquid Glass ── */
         .preview-box {
-            background: #ffffff;
-            border: 1px solid var(--slate-200);
-            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.65);
+            backdrop-filter: blur(24px) saturate(180%);
+            -webkit-backdrop-filter: blur(24px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
             overflow: hidden;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
         .preview-header {
-            background: var(--slate-50);
-            border-bottom: 1px solid var(--slate-200);
-            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 20px;
             font-size: 12px;
             font-weight: 700;
-            color: var(--slate-700);
+            color: #cbd5e1;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -302,15 +537,21 @@ HTML_INTERFACE = """<!DOCTYPE html>
             border: none;
             display: block;
             background: #ffffff;
+            border-bottom-left-radius: 16px;
+            border-bottom-right-radius: 16px;
         }
 
         footer {
+            position: relative;
+            z-index: 10;
             text-align: center;
-            padding: 16px;
+            padding: 20px;
             font-size: 12px;
-            color: var(--slate-500);
-            border-top: 1px solid var(--slate-200);
-            background: #ffffff;
+            color: #64748b;
+            border-top: 1px solid rgba(255, 255, 255, 0.06);
+            background: rgba(10, 15, 26, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             margin-top: auto;
         }
 
@@ -322,11 +563,21 @@ HTML_INTERFACE = """<!DOCTYPE html>
     </style>
 </head>
 <body>
+    <!-- Orbes de Iluminación Ambientales (Liquid Glass Premium) -->
+    <div class="ambient-orbs-container" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+        <div class="orb orb-4"></div>
+    </div>
+
     <header>
         <div class="brand">
             {% if logo_uri %}
-            <img src="{{ logo_uri }}" alt="KrediYA" style="height: 38px; width: auto; object-fit: contain; margin-right: 14px;">
-            <div style="border-left: 1px solid var(--slate-200); padding-left: 16px;">
+            <div class="brand-logo-card">
+                <img src="{{ logo_uri }}" alt="KrediYA" style="height: 32px; width: auto; object-fit: contain;">
+            </div>
+            <div style="border-left: 1px solid rgba(255, 255, 255, 0.12); padding-left: 16px;">
             {% else %}
             <div class="brand-logo">📄</div>
             <div>
