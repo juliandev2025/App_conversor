@@ -123,28 +123,44 @@ def extract_cronograma_data(pdf_path_or_bytes):
 
 def analyze_and_classify_movements(data):
     """
-    Clasifica movimientos usando Asociación por Ciclo + Amortización de Rezago (Opción B).
+    Clasifica movimientos usando Asociación por Ciclo + Amortización de Rezago (Opción B),
+    con soporte completo para Pagos Parciales, Pagos Dobles y Pagos Multi-Cuota.
 
-    Fase 1 – Asociación directa por ciclo:
-        Cada cuota ciclada que cuente con su pago verificado regular en su ciclo
-        (entre su vencimiento y la siguiente cuota) queda cancelada/Registrada.
-        Cualquier pago excedente o extemporáneo pasa a la bolsa de rezago.
+    MODELO DE IMPUTACIÓN (saldo vivo por cuota):
+    ─────────────────────────────────────────────
+    Cada cuota ciclada mantiene un "saldo vivo" que se va reduciendo a medida que
+    se imputan pagos. El resultado por cuota puede ser:
+        • Registrada      → saldo vivo = 0  (cubierta en su totalidad)
+        • Abono Parcial   → 0 < saldo vivo < monto_cuota  (abono inferior al total)
+        • Pendiente/Mora  → saldo vivo = monto_cuota  (sin ningún pago)
 
-    Fase 2 – Amortización de mora vieja con pagos sobrantes (Rezago FIFO):
-        Los pagos verificados sobrantes (abonos posteriores o excedentes) se aplican
-        en estricto orden cronológico ascendente (FIFO) a las cuotas cicladas más
-        antiguas que hayan quedado descubiertas (por rechazos, impagos, etc.).
+    FASES DE IMPUTACIÓN:
+    ─────────────────────────────────────────────
+    Fase 1 – Asociación Directa por Ciclo (Cuotas Corrientes):
+        Para cada cuota ciclada (que no es la última con mora previa acumulada),
+        los pagos verificados en su ventana de ciclo se imputan contra su saldo vivo,
+        cubriendo tantas cuotas consecutivas como permita el monto disponible.
 
-    Fase 3 – Determinación de cuotas pendientes / mora:
-        Toda cuota ciclada que no haya sido cubierta ni en Fase 1 ni en Fase 2
-        se marca como 'Pendiente / Mora'. Las cuotas futuras a la fecha de consulta
-        se mantienen 'Por Ciclar'.
+    Fase 2 – Amortización de Rezago FIFO:
+        Los pagos sobrantes (extemporáneos o posteriores al último ciclo) se aplican
+        en orden cronológico ascendente (FIFO) sobre las cuotas más antiguas aún
+        con saldo vivo, cubriendo total o parcialmente tantas cuotas como alcance.
+
+    Fase 3 – Determinación de estados:
+        • saldo_vivo = 0                    → Registrada
+        • 0 < saldo_vivo < monto_cuota      → Abono Parcial (saldo remanente visible)
+        • saldo_vivo = monto_cuota completo → Pendiente / Mora
+        • fecha > fecha_consulta            → Por Ciclar
     """
+    TOLERANCIA = 0.50   # Tolerancia de $0.50 para diferencias de redondeo en pagos vs cuotas
+    UMBRAL_CICLO = 0.95  # Si el pago de ciclo cubre ≥95% del valor de la cuota, se considera pago completo
+                         # (cubre diferencias por comisiones del procesador de pago, ej: $103,654 vs $103,827)
+
     f_cons = parse_date(data["fecha_consulta"]) or datetime.now()
     saldo_actual_num = parse_currency(data.get("saldo_actual", "$0.00"))
     cliente_al_dia_por_saldo = (saldo_actual_num == 0.0)
 
-    # ── 1. Agrupar filas en estructura de cuotas y sus pagos de ciclo ────────
+    # ── 1. Agrupar filas en cuotas con su saldo vivo y pagos de ciclo ────────
     cuotas = []
     current_cuota = None
     extra_pagos = []
@@ -158,14 +174,17 @@ def analyze_and_classify_movements(data):
         status    = r[5] if len(r) > 5 else ""
 
         if "Cuota" in concepto:
+            monto_val = parse_currency(monto)
             current_cuota = {
-                "num":       len(cuotas) + 1,
-                "concepto":  concepto.replace("*", "").strip(),
-                "fecha_str": fecha_str,
-                "fecha":     parse_date(fecha_str),
-                "monto":     monto,
-                "row":       r,
-                "pagos":     [],
+                "num":        len(cuotas) + 1,
+                "concepto":   concepto.replace("*", "").strip(),
+                "fecha_str":  fecha_str,
+                "fecha":      parse_date(fecha_str),
+                "monto":      monto,
+                "monto_val":  monto_val,
+                "saldo_vivo": monto_val,   # Inicia en el valor completo de la cuota
+                "row":        r,
+                "pagos":      [],
             }
             cuotas.append(current_cuota)
         elif "Pago" in concepto:
@@ -174,11 +193,12 @@ def analyze_and_classify_movements(data):
                 total_pagos_verificados += 1
                 total_pagado += monto_val
                 pago_obj = {
-                    "fecha_str": fecha_str,
-                    "fecha":     parse_date(fecha_str),
-                    "monto":     monto,
-                    "monto_val": monto_val,
-                    "row":       r,
+                    "fecha_str":      fecha_str,
+                    "fecha":          parse_date(fecha_str),
+                    "monto":          monto,
+                    "monto_val":      monto_val,
+                    "disponible":     monto_val,  # Saldo disponible del pago (se consume a medida que cubre cuotas)
+                    "row":            r,
                 }
                 if current_cuota is not None:
                     current_cuota["pagos"].append(pago_obj)
@@ -190,67 +210,121 @@ def analyze_and_classify_movements(data):
     last_ciclada_num = cicladas[-1]["num"] if cicladas else 0
     cicladas_count   = len(cicladas)
 
-    covered = {c["num"]: False for c in cuotas}
+    # Bolsa de pagos sobrantes para Fase 2 (orden cronológico)
     leftover_pagos = list(extra_pagos)
 
-    # ── FASE 1: Asociación Directa por Ciclo ─────────────────────────────────
+    # ── FASE 1: Asociación Directa por Ciclo con Imputación de Saldo Vivo ────
+    #
+    # Para cada cuota ciclada (excepto la última si tiene mora acumulada previa),
+    # los pagos en su ventana natural se imputan contra su saldo vivo y,
+    # si el monto pagado supera el saldo vivo de esa cuota, el excedente
+    # continúa imputándose a la siguiente cuota sin pagar (en orden).
+    # Esto resuelve los casos de PAGO DOBLE y PAGO EXCEDENTE.
+    #
+    def imputar_pagos_a_cuotas(pagos_lista, cuotas_destino):
+        """
+        Imputa un conjunto de pagos verificados (en orden) contra una lista de
+        cuotas destino (en orden de número de cuota ascendente).
+        Descuenta el saldo vivo de cada cuota; el excedente pasa a la siguiente.
+        Devuelve lista de pagos con .disponible > 0 que quedan como sobrantes.
+        """
+        sobrantes = []
+        idx_cuota = 0
+        for pago in pagos_lista:
+            if pago["disponible"] <= TOLERANCIA:
+                continue  # Este pago ya fue consumido por completo
+            while idx_cuota < len(cuotas_destino) and pago["disponible"] > TOLERANCIA:
+                cuota = cuotas_destino[idx_cuota]
+                if cuota["saldo_vivo"] <= TOLERANCIA:
+                    idx_cuota += 1
+                    continue
+                aplicar = min(pago["disponible"], cuota["saldo_vivo"])
+                cuota["saldo_vivo"] -= aplicar
+                pago["disponible"] -= aplicar
+                if cuota["saldo_vivo"] <= TOLERANCIA:
+                    cuota["saldo_vivo"] = 0.0
+                    idx_cuota += 1
+            if pago["disponible"] > TOLERANCIA:
+                sobrantes.append(pago)
+        return sobrantes
+
     for c in cuotas:
         if c["num"] > last_ciclada_num:
-            # Cuotas futuras no cicladas: cualquier pago asociado pasa a bolsa general
+            # Cuotas futuras: sus pagos van a la bolsa de sobrantes
             leftover_pagos.extend(c["pagos"])
             continue
 
         is_last_ciclada = (c["num"] == last_ciclada_num)
 
         if not is_last_ciclada:
-            if len(c["pagos"]) >= 1:
-                covered[c["num"]] = True
+            if c["pagos"]:
+                # Cuotas con pagos en ciclo: imputar el primer pago a esta cuota y
+                # cualquier excedente del primer pago pasa a sobrantes.
+                # Los pagos adicionales en el mismo ciclo también van a sobrantes.
+                primer_pago = c["pagos"][0]
+                aplicar = min(primer_pago["disponible"], c["saldo_vivo"])
+                c["saldo_vivo"] -= aplicar
+                primer_pago["disponible"] -= aplicar
+                # UMBRAL_CICLO: si el pago de ciclo cubrió ≥95% del valor de la cuota,
+                # se considera pago completo (absorbe diferencias por comisión del procesador).
+                if c["saldo_vivo"] <= TOLERANCIA or c["saldo_vivo"] <= c["monto_val"] * (1 - UMBRAL_CICLO):
+                    c["saldo_vivo"] = 0.0
+                # El excedente del primer pago + los pagos adicionales van a sobrantes
+                if primer_pago["disponible"] > TOLERANCIA:
+                    leftover_pagos.append(primer_pago)
                 leftover_pagos.extend(c["pagos"][1:])
         else:
-            # En la última cuota ciclada:
-            # Si existen cuotas anteriores descubiertas (en mora), los pagos al cierre
-            # son abonos posteriores a las cuotas para amortizar la deuda más antigua
-            # por prelación de pagos legal y financiera.
+            # Última cuota ciclada: si hay mora previa acumulada, sus pagos van a rezago
             has_prior_uncovered = any(
-                not covered[prior["num"]]
-                for prior in cuotas
-                if prior["num"] < c["num"] and prior["num"] <= last_ciclada_num
+                cuotas[i]["saldo_vivo"] > TOLERANCIA
+                for i in range(c["num"] - 1)
+                if cuotas[i]["num"] <= last_ciclada_num
             )
             if has_prior_uncovered:
                 leftover_pagos.extend(c["pagos"])
             else:
-                if len(c["pagos"]) >= 1:
-                    covered[c["num"]] = True
+                if c["pagos"]:
+                    primer_pago = c["pagos"][0]
+                    aplicar = min(primer_pago["disponible"], c["saldo_vivo"])
+                    c["saldo_vivo"] -= aplicar
+                    primer_pago["disponible"] -= aplicar
+                    # UMBRAL_CICLO aplica también a la última cuota ciclada
+                    if c["saldo_vivo"] <= TOLERANCIA or c["saldo_vivo"] <= c["monto_val"] * (1 - UMBRAL_CICLO):
+                        c["saldo_vivo"] = 0.0
+                    if primer_pago["disponible"] > TOLERANCIA:
+                        leftover_pagos.append(primer_pago)
                     leftover_pagos.extend(c["pagos"][1:])
 
     # ── FASE 2: Amortización de Mora Vieja con Pagos Sobrantes (FIFO) ────────
+    # Los pagos sobrantes se ordenan cronológicamente y se imputan contra las cuotas
+    # cicladas con saldo vivo > 0 en orden ascendente (las más antiguas primero).
     leftover_pagos.sort(key=lambda p: p["fecha"] or datetime.min)
-    uncovered_cicladas = [c for c in cuotas if c["num"] <= last_ciclada_num and not covered[c["num"]]]
+    uncovered_cicladas = [c for c in cuotas
+                          if c["num"] <= last_ciclada_num and c["saldo_vivo"] > TOLERANCIA]
     uncovered_cicladas.sort(key=lambda c: c["num"])
 
-    for pago in leftover_pagos:
-        if uncovered_cicladas:
-            oldest = uncovered_cicladas.pop(0)
-            covered[oldest["num"]] = True
+    # Imputar sobrantes (con soporte multi-cuota: un pago grande puede cubrir varias)
+    imputar_pagos_a_cuotas(leftover_pagos, uncovered_cicladas)
 
-    # Override: si el CRM certifica saldo_actual = $0.00, el crédito está al día
+    # ── Override saldo $0 del CRM ─────────────────────────────────────────────
     if cliente_al_dia_por_saldo:
         for c in cuotas:
             if c["num"] <= last_ciclada_num:
-                covered[c["num"]] = True
+                c["saldo_vivo"] = 0.0
 
-    # ── FASE 3: Clasificación final de movimientos y determinación de mora ───
+    # ── FASE 3: Clasificación final de movimientos y determinación de estados ─
     classified = []
     mora_cuotas = []
     mora_cuotas_nums = []
+    abono_parcial_cuotas_nums = []
     cuota_seq = 0
 
     for r in data["filas"]:
-        concepto  = r[0]
-        fecha_str = r[1]
-        monto     = r[2]
-        monto_apl = r[3]
-        saldo     = r[4]
+        concepto   = r[0]
+        fecha_str  = r[1]
+        monto      = r[2]
+        monto_apl  = r[3]
+        saldo      = r[4]
         status_raw = r[5] if len(r) > 5 else ""
         motivo     = r[6] if len(r) > 6 else ""
 
@@ -259,74 +333,107 @@ def analyze_and_classify_movements(data):
                 disp_monto = monto if (monto.startswith("-") or "$-" in monto) else f"-{monto}"
                 disp_apl   = monto_apl if (monto_apl.startswith("-") or "$-" in monto_apl) else f"-{monto_apl}"
                 classified.append({
-                    "tipo":      "PAGO",
-                    "concepto":  "Pago Realizado",
-                    "fecha":     fecha_str,
-                    "monto":     disp_monto,
-                    "monto_apl": disp_apl,
-                    "saldo":     "$0.00",
-                    "estado":    "✔ Verificado",
-                    "row_type":  "pago"
+                    "tipo":          "PAGO",
+                    "concepto":      "Pago Realizado",
+                    "fecha":         fecha_str,
+                    "monto":         disp_monto,
+                    "monto_apl":     disp_apl,
+                    "saldo":         "$0.00",
+                    "saldo_display": "",
+                    "estado":        "✔ Verificado",
+                    "row_type":      "pago"
                 })
             else:
                 det = f"Rechazado ({motivo})" if motivo else "Rechazado iniciado"
                 classified.append({
-                    "tipo":      "RECHAZO",
-                    "concepto":  "Intento de Pago",
-                    "fecha":     fecha_str,
-                    "monto":     monto,
-                    "monto_apl": "$0.00",
-                    "saldo":     saldo,
-                    "estado":    det,
-                    "row_type":  "rechazo"
+                    "tipo":          "RECHAZO",
+                    "concepto":      "Intento de Pago",
+                    "fecha":         fecha_str,
+                    "monto":         monto,
+                    "monto_apl":     "$0.00",
+                    "saldo":         saldo,
+                    "saldo_display": "",
+                    "estado":        det,
+                    "row_type":      "rechazo"
                 })
 
         elif "Cuota" in concepto:
             cuota_seq += 1
             clean_concepto = concepto.replace("*", "").strip()
             es_ciclada = (cuota_seq <= last_ciclada_num)
+            cuota_info = cuotas[cuota_seq - 1]  # Referencia a la cuota con saldo_vivo calculado
 
             if es_ciclada:
-                if covered.get(cuota_seq, False):
+                sv = cuota_info["saldo_vivo"]
+                mv = cuota_info["monto_val"]
+
+                if sv <= TOLERANCIA:
+                    # CUOTA COMPLETAMENTE PAGADA
                     classified.append({
-                        "tipo":      "CICLADA",
-                        "concepto":  clean_concepto,
-                        "fecha":     fecha_str,
-                        "monto":     monto,
-                        "monto_apl": monto_apl,
-                        "saldo":     monto,
-                        "estado":    "Registrada",
-                        "row_type":  "ciclada_pagada"
+                        "tipo":          "CICLADA",
+                        "concepto":      clean_concepto,
+                        "fecha":         fecha_str,
+                        "monto":         monto,
+                        "monto_apl":     monto_apl,
+                        "saldo":         monto,
+                        "saldo_display": "",
+                        "estado":        "Registrada",
+                        "row_type":      "ciclada_pagada"
+                    })
+                elif sv < mv - TOLERANCIA:
+                    # ABONO PARCIAL: saldo vivo entre 0 y el valor completo de la cuota
+                    remanente_str = format_currency(sv)
+                    abono_str     = format_currency(mv - sv)
+                    abono_parcial_cuotas_nums.append(cuota_seq)
+                    mora_cuotas.append(clean_concepto)        # Cuenta como mora parcial
+                    mora_cuotas_nums.append(cuota_seq)
+                    classified.append({
+                        "tipo":          "CICLADA",
+                        "concepto":      clean_concepto,
+                        "fecha":         fecha_str,
+                        "monto":         monto,
+                        "monto_apl":     f"-{abono_str}",
+                        "saldo":         remanente_str,
+                        "saldo_display": remanente_str,
+                        "estado":        f"Abono Parcial (Saldo: {remanente_str})",
+                        "row_type":      "ciclada_parcial"
                     })
                 else:
+                    # SIN PAGO: mora total
                     mora_cuotas.append(clean_concepto)
                     mora_cuotas_nums.append(cuota_seq)
                     classified.append({
-                        "tipo":      "CICLADA",
-                        "concepto":  clean_concepto,
-                        "fecha":     fecha_str,
-                        "monto":     monto,
-                        "monto_apl": monto_apl,
-                        "saldo":     monto,
-                        "estado":    "Pendiente / Mora",
-                        "row_type":  "ciclada_mora"
+                        "tipo":          "CICLADA",
+                        "concepto":      clean_concepto,
+                        "fecha":         fecha_str,
+                        "monto":         monto,
+                        "monto_apl":     monto_apl,
+                        "saldo":         monto,
+                        "saldo_display": "",
+                        "estado":        "Pendiente / Mora",
+                        "row_type":      "ciclada_mora"
                     })
             else:
                 classified.append({
-                    "tipo":      "FUTURA",
-                    "concepto":  clean_concepto,
-                    "fecha":     fecha_str,
-                    "monto":     monto,
-                    "monto_apl": monto_apl,
-                    "saldo":     saldo,
-                    "estado":    "Por Ciclar",
-                    "row_type":  "futura"
+                    "tipo":          "FUTURA",
+                    "concepto":      clean_concepto,
+                    "fecha":         fecha_str,
+                    "monto":         monto,
+                    "monto_apl":     monto_apl,
+                    "saldo":         saldo,
+                    "saldo_display": "",
+                    "estado":        "Por Ciclar",
+                    "row_type":      "futura"
                 })
 
-    mora_count = len(mora_cuotas)
+    mora_count       = len(mora_cuotas)
     total_pagado_str = format_currency(total_pagado)
 
-    # ── Construcción de la sección "REVISIÓN DE SOPORTE" ──────────────────────
+    # Separar cuotas con mora total de cuotas con abono parcial (para el texto)
+    mora_total_nums    = [n for n in mora_cuotas_nums if n not in abono_parcial_cuotas_nums]
+    mora_parcial_nums  = abono_parcial_cuotas_nums
+
+    # ── Narrativa "Revisión de Soporte" ──────────────────────────────────────
     f_cons_str = data["fecha_consulta"].split(",")[0].strip() if data["fecha_consulta"] else "la fecha"
 
     if mora_count > 0:
@@ -338,13 +445,29 @@ def analyze_and_classify_movements(data):
             nums_str = ", ".join(str(n) for n in mora_cuotas_nums[:-1]) + f" y {mora_cuotas_nums[-1]}"
             cuotas_ref = f"las **cuotas {nums_str}**"
 
+        # Construir descripción detallada según los tipos de mora
+        partes_mora = []
+        if mora_total_nums:
+            if len(mora_total_nums) == 1:
+                partes_mora.append(f"**1 cuota sin pago** (Cuota {mora_total_nums[0]})")
+            else:
+                ns = ", ".join(str(n) for n in mora_total_nums[:-1]) + f" y {mora_total_nums[-1]}"
+                partes_mora.append(f"**{len(mora_total_nums)} cuotas sin pago** (Cuotas {ns})")
+        if mora_parcial_nums:
+            if len(mora_parcial_nums) == 1:
+                partes_mora.append(f"**1 cuota con abono parcial** (Cuota {mora_parcial_nums[0]})")
+            else:
+                ns = ", ".join(str(n) for n in mora_parcial_nums[:-1]) + f" y {mora_parcial_nums[-1]}"
+                partes_mora.append(f"**{len(mora_parcial_nums)} cuotas con abono parcial** (Cuotas {ns})")
+
+        detalle_mora = " y ".join(partes_mora) if partes_mora else cuotas_ref
+
         revision_texto = (
             f"A la fecha de consulta ({f_cons_str}), han ciclado {cicladas_count} cuotas "
             f"(Cuota 1 a Cuota {cicladas_count}). "
             f"El cliente registra {total_pagos_verificados} pago(s) verificado(s) por un total de **{total_pagado_str}**. "
-            f"Presenta **{mora_count} cuotas pendientes** correspondientes a {cuotas_ref}, "
-            f"lo que genera **{mora_count} cuota(s) atrasada(s) en mora** "
-            f"con un saldo vencido de **{data['saldo_actual']}** a pagar antes del {data['pagar_antes_de']}."
+            f"Presenta **{mora_count} cuotas pendientes** correspondientes a {cuotas_ref}: {detalle_mora}, "
+            f"generando un saldo vencido de **{data['saldo_actual']}** a pagar antes del {data['pagar_antes_de']}."
         )
     else:
         mora_subtitle = "Sin mora pendiente (Al día)"
@@ -367,14 +490,16 @@ def analyze_and_classify_movements(data):
             )
 
     return {
-        "cicladas_count":   cicladas_count,
-        "pagos_count":      total_pagos_verificados,
-        "total_pagado_str": total_pagado_str,
-        "mora_count":       mora_count,
-        "mora_subtitle":    mora_subtitle,
-        "revision_texto":   revision_texto,
-        "classified":       classified,
-        "cuotas_mora":      mora_cuotas_nums,
+        "cicladas_count":          cicladas_count,
+        "pagos_count":             total_pagos_verificados,
+        "total_pagado_str":        total_pagado_str,
+        "mora_count":              mora_count,
+        "mora_subtitle":           mora_subtitle,
+        "revision_texto":          revision_texto,
+        "classified":              classified,
+        "cuotas_mora":             mora_cuotas_nums,
+        "cuotas_mora_total":       mora_total_nums,
+        "cuotas_abono_parcial":    mora_parcial_nums,
     }
 
 def render_html_report(data, analysis):
