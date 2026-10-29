@@ -8,6 +8,7 @@ import os
 import sys
 import io
 import tempfile
+import base64
 from flask import Flask, request, jsonify, render_template_string, send_file, Response
 
 # Asegurar que conversor_core sea importable desde la raíz del proyecto
@@ -36,6 +37,7 @@ HTML_INTERFACE = """<!DOCTYPE html>
     <title>App Conversor - Estado de Cuenta Ejecutivo</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
             --primary: #0052cc;
@@ -423,7 +425,72 @@ HTML_INTERFACE = """<!DOCTYPE html>
     <script>
         let currentHtml = "";
         let currentContract = "reporte";
-        let currentPdfBytes = null;
+        let currentPdfBase64 = null;
+        let currentImagesBase64 = [];
+        let currentTxt = "";
+        let currentBasename = "Reporte_Ejecutivo";
+
+        if (window.pdfjsLib) {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+
+        function b64toBlob(b64Data, contentType) {
+            const byteCharacters = atob(b64Data);
+            const byteArrays = [];
+            for (let offset = 0; offset < byteCharacters.length; offset += 512) {
+                const slice = byteCharacters.slice(offset, offset + 512);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                byteArrays.push(new Uint8Array(byteNumbers));
+            }
+            return new Blob(byteArrays, { type: contentType });
+        }
+
+        function triggerDownload(blob, filename) {
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1500);
+        }
+
+        async function getOrRenderImageBlob(pageIdx = 0) {
+            // 1. Si el servidor ya devolvió la imagen generada en PNG
+            if (currentImagesBase64 && currentImagesBase64.length > pageIdx) {
+                return b64toBlob(currentImagesBase64[pageIdx], 'image/png');
+            }
+            // 2. Fallback: renderizar en el navegador con PDF.js en 200 DPI a partir del PDF vectorial
+            if (currentPdfBase64 && window.pdfjsLib) {
+                try {
+                    const rawData = atob(currentPdfBase64);
+                    const uint8Array = new Uint8Array(rawData.length);
+                    for (let i = 0; i < rawData.length; i++) {
+                        uint8Array[i] = rawData.charCodeAt(i);
+                    }
+                    const loadingTask = pdfjsLib.getDocument({ data: uint8Array });
+                    const pdf = await loadingTask.promise;
+                    const targetPage = Math.min(pageIdx + 1, pdf.numPages);
+                    const page = await pdf.getPage(targetPage);
+                    const viewport = page.getViewport({ scale: 200 / 72 }); // 200 DPI
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    await page.render({ canvasContext: context, viewport: viewport }).promise;
+                    return new Promise((resolve) => {
+                        canvas.toBlob((blob) => resolve(blob), 'image/png');
+                    });
+                } catch (e) {
+                    console.error("Error renderizando con pdf.js:", e);
+                }
+            }
+            return null;
+        }
 
         const dropZone = document.getElementById('dropZone');
         ['dragenter', 'dragover'].forEach(name => {
@@ -470,6 +537,10 @@ HTML_INTERFACE = """<!DOCTYPE html>
                 const res = await response.json();
                 currentHtml = res.html;
                 currentContract = res.data.contrato || "reporte";
+                currentPdfBase64 = res.pdf_base64 || null;
+                currentImagesBase64 = res.images_base64 || [];
+                currentTxt = res.txt_content || "";
+                currentBasename = res.basename || `Reporte_Ejecutivo_${currentContract}`;
 
                 // Actualizar interfaz
                 document.getElementById('resNombre').textContent = res.data.nombre;
@@ -518,41 +589,67 @@ HTML_INTERFACE = """<!DOCTYPE html>
         }
 
         function openPdfNewTab() {
-            if (!currentContract) return;
-            window.open(`/api/view_pdf?contract=${encodeURIComponent(currentContract)}`, '_blank');
+            if (currentPdfBase64) {
+                const blob = b64toBlob(currentPdfBase64, 'application/pdf');
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } else if (currentContract) {
+                window.open(`/api/view_pdf?contract=${encodeURIComponent(currentContract)}`, '_blank');
+            }
         }
 
-        function openImageNewTab(page = 0) {
-            if (!currentContract) return;
-            window.open(`/api/view_image?contract=${encodeURIComponent(currentContract)}&page=${page}`, '_blank');
+        async function openImageNewTab(page = 0) {
+            const blob = await getOrRenderImageBlob(page);
+            if (blob) {
+                const url = URL.createObjectURL(blob);
+                window.open(url, '_blank');
+            } else if (currentContract) {
+                window.open(`/api/view_image?contract=${encodeURIComponent(currentContract)}&page=${page}`, '_blank');
+            } else {
+                alert("No se pudo generar la imagen para visualización.");
+            }
         }
 
         function downloadServerPdf() {
-            if (!currentContract) return;
-            window.location.href = `/api/download_pdf?contract=${encodeURIComponent(currentContract)}`;
+            if (currentPdfBase64) {
+                const blob = b64toBlob(currentPdfBase64, 'application/pdf');
+                triggerDownload(blob, `${currentBasename}.pdf`);
+            } else if (currentContract) {
+                window.location.href = `/api/download_pdf?contract=${encodeURIComponent(currentContract)}`;
+            }
         }
 
-        function downloadServerImage(page = 0) {
-            if (!currentContract) return;
-            window.location.href = `/api/download_image?contract=${encodeURIComponent(currentContract)}&page=${page}`;
+        async function downloadServerImage(page = 0) {
+            const btn = document.getElementById('btnDlImg');
+            const originalText = btn ? btn.textContent : '';
+            if (btn) btn.textContent = '⏳ Preparando imagen...';
+            try {
+                const blob = await getOrRenderImageBlob(page);
+                if (blob) {
+                    triggerDownload(blob, `${currentBasename}_pagina_${page + 1}.png`);
+                } else if (currentContract) {
+                    window.location.href = `/api/download_image?contract=${encodeURIComponent(currentContract)}&page=${page}`;
+                } else {
+                    alert("No se pudo generar la imagen.");
+                }
+            } finally {
+                if (btn) btn.textContent = originalText;
+            }
         }
 
         function downloadServerTxt() {
-            if (!currentContract) return;
-            window.location.href = `/api/download_txt?contract=${encodeURIComponent(currentContract)}`;
+            if (currentTxt) {
+                const blob = new Blob([currentTxt], { type: 'text/plain;charset=utf-8' });
+                triggerDownload(blob, `${currentBasename}.txt`);
+            } else if (currentContract) {
+                window.location.href = `/api/download_txt?contract=${encodeURIComponent(currentContract)}`;
+            }
         }
 
         function downloadHtml() {
             if (!currentHtml) return;
             const blob = new Blob([currentHtml], { type: 'text/html' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `Reporte_Ejecutivo_${currentContract}.html`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            triggerDownload(blob, `${currentBasename}.html`);
         }
 
         function resetApp() {
@@ -597,7 +694,7 @@ def convert_cronograma():
         contract_key = data.get("contrato", "reporte")
         report_base = conversor_core.build_report_basename(data)
 
-        # Generar imágenes PNG en memoria (200 DPI) con pypdfium2
+        # Generar imágenes PNG en memoria (200 DPI) con pypdfium2 si está disponible
         images_list = []
         filenames_images = []
         try:
@@ -615,6 +712,11 @@ def convert_cronograma():
         # Generar texto plano
         txt_content = conversor_core.generate_txt_report(data, analysis)
 
+        # Convertir a base64 para entrega instantánea al cliente (sin roundtrips ni pérdida de memoria)
+        pdf_b64 = base64.b64encode(pdf_bytes).decode("ascii")
+        images_b64 = [base64.b64encode(img).decode("ascii") for img in images_list]
+
+        # Guardar en caché de memoria
         LAST_PROCESSED[contract_key] = {
             "pdf_bytes": pdf_bytes,
             "data": data,
@@ -624,6 +726,21 @@ def convert_cronograma():
             "txt_content": txt_content,
             "filename_txt": f"{report_base}.txt"
         }
+
+        # Guardar también en disco temporal /tmp para que sobreviva en entornos serverless
+        try:
+            tmp_dir = tempfile.gettempdir()
+            with open(os.path.join(tmp_dir, f"{contract_key}.pdf"), "wb") as f:
+                f.write(pdf_bytes)
+            with open(os.path.join(tmp_dir, f"{contract_key}_base.txt"), "w", encoding="utf-8") as f:
+                f.write(report_base)
+            for idx, img in enumerate(images_list):
+                with open(os.path.join(tmp_dir, f"{contract_key}_img_{idx}.png"), "wb") as f:
+                    f.write(img)
+            with open(os.path.join(tmp_dir, f"{contract_key}.txt"), "w", encoding="utf-8-sig") as f:
+                f.write(txt_content)
+        except Exception as e_tmp:
+            print("Aviso al escribir en /tmp:", e_tmp)
 
         return jsonify({
             "success": True,
@@ -638,6 +755,9 @@ def convert_cronograma():
             },
             "html": html_content,
             "basename": report_base,
+            "pdf_base64": pdf_b64,
+            "images_base64": images_b64,
+            "txt_content": txt_content,
             "num_images": len(images_list)
         })
 
@@ -648,11 +768,24 @@ def convert_cronograma():
 def view_pdf():
     contract_key = request.args.get("contract", "reporte")
     item = LAST_PROCESSED.get(contract_key)
-    if not item:
+    pdf_bytes = item["pdf_bytes"] if item and "pdf_bytes" in item else None
+    filename_pdf = item["filename_pdf"] if item and "filename_pdf" in item else f"Reporte_Ejecutivo_{contract_key}.pdf"
+    
+    if not pdf_bytes:
+        tmp_pdf = os.path.join(tempfile.gettempdir(), f"{contract_key}.pdf")
+        if os.path.exists(tmp_pdf):
+            with open(tmp_pdf, "rb") as f:
+                pdf_bytes = f.read()
+            tmp_base = os.path.join(tempfile.gettempdir(), f"{contract_key}_base.txt")
+            if os.path.exists(tmp_base):
+                with open(tmp_base, "r", encoding="utf-8") as f:
+                    filename_pdf = f"{f.read().strip()}.pdf"
+
+    if not pdf_bytes:
         return "El archivo no se encuentra en memoria. Por favor vuelve a procesar el cronograma.", 404
 
-    resp = Response(item["pdf_bytes"], mimetype="application/pdf")
-    resp.headers["Content-Disposition"] = f'inline; filename="{item["filename_pdf"]}"'
+    resp = Response(pdf_bytes, mimetype="application/pdf")
+    resp.headers["Content-Disposition"] = f'inline; filename="{filename_pdf}"'
     return resp
 
 @app.route("/api/view_image", methods=["GET"])
@@ -660,28 +793,74 @@ def view_image():
     contract_key = request.args.get("contract", "reporte")
     page_idx = int(request.args.get("page", 0))
     item = LAST_PROCESSED.get(contract_key)
-    if not item or "images" not in item or not item["images"]:
+    
+    img_bytes = None
+    filename_img = f"Reporte_Ejecutivo_{contract_key}_pagina_{page_idx+1}.png"
+    if item and "images" in item and item["images"]:
+        idx = min(page_idx, len(item["images"]) - 1)
+        img_bytes = item["images"][idx]
+        if "filename_images" in item and idx < len(item["filename_images"]):
+            filename_img = item["filename_images"][idx]
+            
+    if not img_bytes:
+        tmp_img = os.path.join(tempfile.gettempdir(), f"{contract_key}_img_{page_idx}.png")
+        if os.path.exists(tmp_img):
+            with open(tmp_img, "rb") as f:
+                img_bytes = f.read()
+
+    if not img_bytes:
+        # Intentar generar imagen al vuelo a partir del PDF
+        pdf_bytes = item["pdf_bytes"] if item and "pdf_bytes" in item else None
+        if not pdf_bytes:
+            tmp_pdf = os.path.join(tempfile.gettempdir(), f"{contract_key}.pdf")
+            if os.path.exists(tmp_pdf):
+                with open(tmp_pdf, "rb") as f:
+                    pdf_bytes = f.read()
+        if pdf_bytes:
+            try:
+                import pypdfium2 as pdfium
+                doc = pdfium.PdfDocument(pdf_bytes)
+                if len(doc) > 0:
+                    idx = min(page_idx, len(doc) - 1)
+                    img_buf = io.BytesIO()
+                    doc[idx].render(scale=200/72).to_pil().save(img_buf, format="PNG")
+                    img_bytes = img_buf.getvalue()
+                doc.close()
+            except Exception as e_reg:
+                print("Error regenerando imagen:", e_reg)
+
+    if not img_bytes:
         return "No hay imagen disponible.", 404
 
-    if page_idx >= len(item["images"]):
-        page_idx = 0
-
-    resp = Response(item["images"][page_idx], mimetype="image/png")
-    resp.headers["Content-Disposition"] = f'inline; filename="{item["filename_images"][page_idx]}"'
+    resp = Response(img_bytes, mimetype="image/png")
+    resp.headers["Content-Disposition"] = f'inline; filename="{filename_img}"'
     return resp
 
 @app.route("/api/download_pdf", methods=["GET"])
 def download_pdf():
     contract_key = request.args.get("contract", "reporte")
     item = LAST_PROCESSED.get(contract_key)
-    if not item:
+    pdf_bytes = item["pdf_bytes"] if item and "pdf_bytes" in item else None
+    filename_pdf = item["filename_pdf"] if item and "filename_pdf" in item else f"Reporte_Ejecutivo_{contract_key}.pdf"
+    
+    if not pdf_bytes:
+        tmp_pdf = os.path.join(tempfile.gettempdir(), f"{contract_key}.pdf")
+        if os.path.exists(tmp_pdf):
+            with open(tmp_pdf, "rb") as f:
+                pdf_bytes = f.read()
+            tmp_base = os.path.join(tempfile.gettempdir(), f"{contract_key}_base.txt")
+            if os.path.exists(tmp_base):
+                with open(tmp_base, "r", encoding="utf-8") as f:
+                    filename_pdf = f"{f.read().strip()}.pdf"
+
+    if not pdf_bytes:
         return "El archivo no se encuentra en memoria. Por favor vuelve a procesar el cronograma.", 404
 
     return send_file(
-        io.BytesIO(item["pdf_bytes"]),
+        io.BytesIO(pdf_bytes),
         mimetype="application/pdf",
         as_attachment=True,
-        download_name=item["filename_pdf"]
+        download_name=filename_pdf
     )
 
 @app.route("/api/download_image", methods=["GET"])
@@ -689,31 +868,76 @@ def download_image():
     contract_key = request.args.get("contract", "reporte")
     page_idx = int(request.args.get("page", 0))
     item = LAST_PROCESSED.get(contract_key)
-    if not item or "images" not in item or not item["images"]:
+    
+    img_bytes = None
+    filename_img = f"Reporte_Ejecutivo_{contract_key}_pagina_{page_idx+1}.png"
+    if item and "images" in item and item["images"]:
+        idx = min(page_idx, len(item["images"]) - 1)
+        img_bytes = item["images"][idx]
+        if "filename_images" in item and idx < len(item["filename_images"]):
+            filename_img = item["filename_images"][idx]
+            
+    if not img_bytes:
+        tmp_img = os.path.join(tempfile.gettempdir(), f"{contract_key}_img_{page_idx}.png")
+        if os.path.exists(tmp_img):
+            with open(tmp_img, "rb") as f:
+                img_bytes = f.read()
+
+    if not img_bytes:
+        pdf_bytes = item["pdf_bytes"] if item and "pdf_bytes" in item else None
+        if not pdf_bytes:
+            tmp_pdf = os.path.join(tempfile.gettempdir(), f"{contract_key}.pdf")
+            if os.path.exists(tmp_pdf):
+                with open(tmp_pdf, "rb") as f:
+                    pdf_bytes = f.read()
+        if pdf_bytes:
+            try:
+                import pypdfium2 as pdfium
+                doc = pdfium.PdfDocument(pdf_bytes)
+                if len(doc) > 0:
+                    idx = min(page_idx, len(doc) - 1)
+                    img_buf = io.BytesIO()
+                    doc[idx].render(scale=200/72).to_pil().save(img_buf, format="PNG")
+                    img_bytes = img_buf.getvalue()
+                doc.close()
+            except Exception as e_reg:
+                print("Error regenerando imagen:", e_reg)
+
+    if not img_bytes:
         return "No hay imagen disponible.", 404
 
-    if page_idx >= len(item["images"]):
-        page_idx = 0
-
     return send_file(
-        io.BytesIO(item["images"][page_idx]),
+        io.BytesIO(img_bytes),
         mimetype="image/png",
         as_attachment=True,
-        download_name=item["filename_images"][page_idx]
+        download_name=filename_img
     )
 
 @app.route("/api/download_txt", methods=["GET"])
 def download_txt():
     contract_key = request.args.get("contract", "reporte")
     item = LAST_PROCESSED.get(contract_key)
-    if not item or "txt_content" not in item:
+    txt_content = item["txt_content"] if item and "txt_content" in item else None
+    filename_txt = item["filename_txt"] if item and "filename_txt" in item else f"Reporte_Ejecutivo_{contract_key}.txt"
+
+    if not txt_content:
+        tmp_txt = os.path.join(tempfile.gettempdir(), f"{contract_key}.txt")
+        if os.path.exists(tmp_txt):
+            with open(tmp_txt, "r", encoding="utf-8-sig") as f:
+                txt_content = f.read()
+            tmp_base = os.path.join(tempfile.gettempdir(), f"{contract_key}_base.txt")
+            if os.path.exists(tmp_base):
+                with open(tmp_base, "r", encoding="utf-8") as f:
+                    filename_txt = f"{f.read().strip()}.txt"
+
+    if not txt_content:
         return "No hay archivo TXT disponible.", 404
 
     return send_file(
-        io.BytesIO(item["txt_content"].encode("utf-8-sig")),
+        io.BytesIO(txt_content.encode("utf-8-sig")),
         mimetype="text/plain",
         as_attachment=True,
-        download_name=item["filename_txt"]
+        download_name=filename_txt
     )
 
 # Para ejecución local con 'python api/index.py'
