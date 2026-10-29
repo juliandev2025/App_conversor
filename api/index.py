@@ -918,7 +918,12 @@ LAST_PROCESSED = {}
 
 @app.route("/", methods=["GET"])
 def index():
-    return render_template_string(HTML_INTERFACE, logo_uri=KREDIYA_LOGO_DATA_URI)
+    rendered = render_template_string(HTML_INTERFACE, logo_uri=KREDIYA_LOGO_DATA_URI)
+    resp = Response(rendered, mimetype="text/html")
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 @app.route("/api/convert", methods=["POST"])
 def convert_cronograma():
