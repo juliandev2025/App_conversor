@@ -81,10 +81,9 @@ with col_logo:
         st.image(logo_data.get_krediya_logo_bytes(), use_container_width=True)
 with col_title:
     st.markdown('<div class="main-title">App Conversor de Cronogramas</div>', unsafe_allow_html=True)
-    st.markdown('<div class="sub-title">Convierte cronogramas del CRM en Estados de Cuenta Ejecutivos detallados (PDF Oficial, Imagen PNG y TXT).</div>', unsafe_allow_html=True)
 
 uploaded_files = st.file_uploader(
-    "Sube uno o varios archivos PDF de Cronograma (`cronograma_*.pdf`)",
+    "Arrastra el cronograma generado por Admin (`cronograma_*.pdf`)",
     type=["pdf"],
     accept_multiple_files=True
 )

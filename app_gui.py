@@ -132,15 +132,11 @@ class AppConversorGUI:
                 self.logo_tk = None
 
         text_frame = tk.Frame(header, bg="#ffffff")
-        text_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=14)
+        text_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, pady=18)
 
         title_lbl = tk.Label(text_frame, text="App Conversor de Cronogramas",
                              font=("Segoe UI", 13, "bold"), bg="#ffffff", fg="#0f172a")
         title_lbl.pack(anchor="w")
-
-        sub_lbl = tk.Label(text_frame, text="Estado de Cuenta Ejecutivo - Formato Institucional",
-                           font=("Segoe UI", 8), bg="#ffffff", fg="#64748b")
-        sub_lbl.pack(anchor="w")
 
         # --- CONTENEDOR CENTRAL ---
         main_frame = tk.Frame(self.root, bg="#f8fafc", padx=20, pady=15)
@@ -182,14 +178,6 @@ class AppConversorGUI:
         action_box = tk.Frame(main_frame, bg="#f8fafc")
         action_box.pack(fill=tk.X, pady=(0, 10))
 
-        # Auto-apertura del PDF al terminar
-        self.auto_open_var = tk.BooleanVar(value=True)
-        chk = tk.Checkbutton(action_box,
-                             text="Abrir el PDF automaticamente en una nueva pestana del navegador",
-                             variable=self.auto_open_var,
-                             font=("Segoe UI", 8), bg="#f8fafc", activebackground="#f8fafc")
-        chk.pack(anchor="w", pady=(0, 4))
-
         # Sub-panel de exportaciones adicionales
         export_frame = tk.LabelFrame(action_box, text=" Exportar adicionalmente: ",
                                      font=("Segoe UI", 8, "bold"), bg="#f8fafc", fg="#334155",
@@ -199,7 +187,7 @@ class AppConversorGUI:
         self.export_img_var = tk.BooleanVar(value=False)
         chk_img = tk.Checkbutton(
             export_frame,
-            text="Imagen PNG de alta calidad (200 DPI) \u2014 se abrira automaticamente en el navegador",
+            text="Imagen PNG de alta calidad (200 DPI) \u2014 se genera para visualizacion",
             variable=self.export_img_var,
             font=("Segoe UI", 8), bg="#f8fafc", activebackground="#f8fafc"
         )
@@ -365,17 +353,12 @@ class AppConversorGUI:
 
             self.convert_btn.config(state=tk.NORMAL)
 
-            # Apertura automatica en nueva pestana del navegador
-            if self.auto_open_var.get():
-                self.open_pdf()
-            if self.export_img_var.get() and self.generated_images:
-                self.open_image()
-
             messagebox.showinfo(
                 "Exito",
                 "Archivos generados exitosamente:\n\n" +
                 "\n".join(archivos_creados) +
-                f"\n\nUbicacion:\n{dir_name}"
+                f"\n\nUbicacion:\n{dir_name}\n\n" +
+                "Haz clic en 'Abrir PDF Generado' o 'Ver Imagen' para visualizarlos."
             )
 
         except Exception as e:

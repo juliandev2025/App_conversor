@@ -390,16 +390,17 @@ def render_html_report(data, analysis):
     total_movs = len(classified)
     
     # ── DISTRIBUCIÓN DINÁMICA INTELIGENTE ─────────────────────────────────
-    # Si las cuotas y pagos caben en 1 sola hoja (hasta 20 movimientos),
+    # Si las cuotas y pagos caben en 1 sola hoja (hasta 28 movimientos),
     # no desperdiciar espacio en blanco y mantener todo en 1 sola página.
-    if total_movs <= 20:
+    if total_movs <= 28:
         split_p1 = total_movs
         p1_rows = classified
         p2_rows = []
         num_pages = 1
         sec1_title = "HISTORIAL DETALLADO DE MOVIMIENTOS"
     else:
-        split_p1 = min(18, total_movs)
+        # Si requiere 2 páginas, balancear proporcionalmente para no dejar huecos
+        split_p1 = min(24, (total_movs + 1) // 2 + 2)
         p1_rows = classified[:split_p1]
         p2_rows = classified[split_p1:]
         num_pages = 2
@@ -1070,15 +1071,15 @@ def generate_pdf_reportlab(data, analysis, output_pdf_path):
     total_movs = len(classified)
 
     # ── DISTRIBUCIÓN DINÁMICA INTELIGENTE ─────────────────────────────────
-    # Si las cuotas y pagos caben en 1 sola hoja (hasta 20 movimientos),
+    # Si las cuotas y pagos caben en 1 sola hoja (hasta 28 movimientos),
     # no desperdiciar espacio en blanco y mantener todo en 1 sola página.
-    if total_movs <= 20:
+    if total_movs <= 28:
         split_p1 = total_movs
         p1_rows = classified
         p2_rows = []
         sec1_title_text = "HISTORIAL DETALLADO DE MOVIMIENTOS"
     else:
-        split_p1 = min(18, total_movs)
+        split_p1 = min(24, (total_movs + 1) // 2 + 2)
         p1_rows = classified[:split_p1]
         p2_rows = classified[split_p1:]
         sec1_title_text = f"HISTORIAL DETALLADO DE MOVIMIENTOS (PARTE 1: MOVIMIENTOS 1 AL {len(p1_rows)})"

@@ -330,28 +330,16 @@ HTML_INTERFACE = """<!DOCTYPE html>
             <div>
             {% endif %}
                 <div class="brand-title">App Conversor de Cronogramas</div>
-                <div class="brand-sub">Estado de Cuenta Ejecutivo - Formato Institucional</div>
             </div>
         </div>
         <span class="badge-cloud">⚡ Vercel Cloud Ready</span>
     </header>
 
     <main>
-        <!-- Opciones de Apertura Automática -->
-        <div class="options-bar">
-            <span style="font-size: 13px; font-weight: 700; color: var(--slate-900);">⚡ Al procesar:</span>
-            <label class="chk-option">
-                <input type="checkbox" id="chkAutoPdf" checked> 📄 Abrir PDF en nueva pestaña automáticamente
-            </label>
-            <label class="chk-option">
-                <input type="checkbox" id="chkAutoImg" checked> 🖼️ Abrir Imagen en nueva pestaña automáticamente
-            </label>
-        </div>
-
         <!-- Card para Subir Archivo -->
         <div class="upload-card" id="dropZone" onclick="document.getElementById('fileInput').click()">
             <div class="upload-icon">📂</div>
-            <div class="upload-title">Arrastra aquí el cronograma PDF descargado del CRM</div>
+            <div class="upload-title">Arrastra el cronograma generado por Admin</div>
             <div class="upload-hint">O haz clic para seleccionar el archivo (<code>cronograma_*.pdf</code>)</div>
             <button class="btn-select" type="button">Seleccionar archivo PDF</button>
             <input type="file" id="fileInput" accept=".pdf" onchange="handleFileSelect(event)">
@@ -522,16 +510,6 @@ HTML_INTERFACE = """<!DOCTYPE html>
 
                 document.getElementById('loading').style.display = 'none';
                 document.getElementById('resultsArea').style.display = 'block';
-
-                // Si la casilla de apertura automatica esta activa, abrir en nueva pestana
-                const autoPdf = document.getElementById('chkAutoPdf') && document.getElementById('chkAutoPdf').checked;
-                const autoImg = document.getElementById('chkAutoImg') && document.getElementById('chkAutoImg').checked;
-                if (autoPdf) {
-                    setTimeout(() => openPdfNewTab(), 100);
-                }
-                if (autoImg) {
-                    setTimeout(() => openImageNewTab(0), 300);
-                }
 
             } catch (err) {
                 document.getElementById('loading').style.display = 'none';
