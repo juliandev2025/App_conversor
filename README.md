@@ -1,10 +1,10 @@
-# 📄 App_conversor: Generador de Reportes Ejecutivos de Estado de Cuenta
+# App_conversor: Generador de Reportes Ejecutivos de Estado de Cuenta
 
 Programa especializado para el equipo de soporte a tiendas y clientes. Transforma automáticamente cualquier cronograma en PDF descargado del CRM (KrediYA / plataforma de gestión) en un **Reporte Ejecutivo de Estado de Cuenta e Historial**, estructurado, claro y con el estilo exacto de la **PLANTILLA oficial de control interno**.
 
 ---
 
-## 🎯 ¿Qué soluciona esta App?
+## ¿Qué soluciona esta App?
 
 En los cronogramas nativos del CRM, los clientes y las tiendas suelen confundirse al ver cuotas futuras, intentos de pago rechazados y cuotas vencidas mezcladas en una sola tabla. 
 
@@ -18,7 +18,7 @@ En los cronogramas nativos del CRM, los clientes y las tiendas suelen confundirs
 
 ---
 
-## 🚀 Formas de Uso
+## Formas de Uso
 
 Tienes **3 formas sencillas** de utilizar la aplicación según tu preferencia:
 
@@ -28,7 +28,7 @@ Haz doble clic en:
 - Se abrirá una ventana nativa de Windows.
 - Haz clic en **"Examinar..."** y selecciona tu archivo `cronograma_*.pdf`.
 - Verás al instante el nombre del cliente, cédula, contrato y estado general.
-- Haz clic en **"🚀 Convertir y Generar PDF Oficial"**.
+- Haz clic en **"Convertir y Generar PDF"**.
 - El PDF se abrirá automáticamente en tu lector de PDF predeterminado.
 
 ### Opción 2: Aplicación Web Interactiva
@@ -38,7 +38,7 @@ Haz doble clic en:
 - Arrastra uno o varios cronogramas PDF.
 - Podrás ver las tarjetas de métricas en tiempo real, previsualizar el reporte completo y descargarlo con el botón **"📥 Descargar Reporte PDF Ejecutivo"**.
 
-### Opción 3: Despliegue en la Nube con Vercel ⚡
+### Opción 3: Despliegue en la Nube con Vercel
 La aplicación está 100% configurada y lista para desplegarse gratis en Vercel:
 1. Ve a [vercel.com](https://vercel.com) e inicia sesión con tu cuenta de GitHub.
 2. Haz clic en **"Add New Project"** e importa el repositorio `juliandev2025/App_conversor`.
@@ -57,7 +57,7 @@ python App_conversor.py --batch .
 
 ---
 
-## 📋 Estructura y Fidelidad de Diseño (Igual a PLANTILLA)
+## Estructura y Fidelidad de Diseño (Igual a PLANTILLA)
 
 El PDF generado cuenta con:
 - **Encabezado superior**: Título en azul `#0052cc`, metadatos a la derecha y línea divisoria azul.
@@ -79,7 +79,7 @@ El PDF generado cuenta con:
 
 ---
 
-## 🛠️ Archivos del Proyecto
+## Archivos del Proyecto
 
 - `App_conversor.py`: Archivo principal / lanzador unificado (CLI, GUI, Batch, Web).
 - `conversor_core.py`: Motor de extracción con `pdfplumber`, reglas financieras y generador HTML/PDF.
