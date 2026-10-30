@@ -57,7 +57,7 @@ python App_conversor.py --batch .
 
 ---
 
-## Estructura y Fidelidad de Diseño (Igual a PLANTILLA)
+## Estructura y Fidelidad de Diseño
 
 El PDF generado cuenta con:
 - **Encabezado superior**: Título en azul `#0052cc`, metadatos a la derecha y línea divisoria azul.
