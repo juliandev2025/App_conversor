@@ -40,31 +40,23 @@ HTML_INTERFACE = """<!DOCTYPE html>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <style>
         :root {
-            --primary: #0066ff;
-            --primary-dark: #0052cc;
-            --accent-cyan: #38bdf8;
-            --accent-purple: #a855f7;
-            --accent-emerald: #4ade80;
-            --accent-rose: #f87171;
-            --bg-dark: #0b0f19;
-            --glass-bg: rgba(17, 24, 39, 0.58);
-            --glass-border: rgba(255, 255, 255, 0.1);
-            --glass-border-hover: rgba(56, 189, 248, 0.45);
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-            --text-dim: #64748b;
+            --bg-dark: #0d0e11;
+            --text-main: #e2dcd7;
+            --text-muted: #9f9da2;
+            --text-dim: #8a8c90;
+            --accent-orange: #fd7b41;
+            --accent-peach: #edbf9b;
+            --accent-copper: #c8521a;
+            --accent-steel: #a0a2a6;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: var(--bg-dark);
-            background-image: 
-                radial-gradient(ellipse 90% 60% at 50% -15%, #152238 0%, transparent 80%),
-                radial-gradient(circle at 100% 100%, #0d1527 0%, transparent 50%),
-                linear-gradient(180deg, #090d16 0%, #0b0f19 50%, #080c14 100%);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #0d0e11;
+            background-image: radial-gradient(circle at 10% 20%, rgba(15, 17, 22, 0.95) 0%, #0d0e11 100%);
             background-attachment: fixed;
-            color: var(--text-main);
+            color: #e2dcd7;
             min-height: 100vh;
             display: flex;
             flex-direction: column;
@@ -73,7 +65,7 @@ HTML_INTERFACE = """<!DOCTYPE html>
             -webkit-font-smoothing: antialiased;
         }
 
-        /* ── Orbes de Iluminación Ambientales (Liquid Glass Glow) ── */
+        /* ── Orbes Calcite de la GPU Difuminados ── */
         .ambient-orbs-container {
             position: fixed;
             top: 0;
@@ -87,83 +79,80 @@ HTML_INTERFACE = """<!DOCTYPE html>
         .orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(105px);
-            opacity: 0.5;
+            filter: blur(100px);
+            opacity: 0.6;
             mix-blend-mode: screen;
             animation-iteration-count: infinite;
             animation-direction: alternate;
             animation-timing-function: ease-in-out;
         }
-        /* Orbe 1: Sapphire Electric Blue / Cyan (Superior Centro-Izquierda) */
+        /* Orbe Naranja Encendido Superior Izquierdo */
         .orb-1 {
-            width: 580px;
-            height: 580px;
-            top: -140px;
-            left: 12%;
-            background: radial-gradient(circle, rgba(0, 102, 255, 0.75) 0%, rgba(6, 182, 212, 0.4) 40%, rgba(0, 102, 255, 0) 70%);
-            animation: orbFloat1 20s infinite alternate;
-        }
-        /* Orbe 2: Deep Violet / Magenta Neon (Centro-Derecha) */
-        .orb-2 {
-            width: 640px;
-            height: 640px;
-            top: 20%;
-            right: -140px;
-            background: radial-gradient(circle, rgba(124, 58, 237, 0.65) 0%, rgba(217, 70, 239, 0.35) 40%, rgba(124, 58, 237, 0) 70%);
-            animation: orbFloat2 24s infinite alternate;
-            opacity: 0.42;
-        }
-        /* Orbe 3: Emerald Azure / Ocean Glow (Inferior Izquierda) */
-        .orb-3 {
             width: 520px;
             height: 520px;
-            bottom: -120px;
-            left: -80px;
-            background: radial-gradient(circle, rgba(14, 165, 233, 0.6) 0%, rgba(16, 185, 129, 0.3) 40%, rgba(14, 165, 233, 0) 70%);
-            animation: orbFloat3 22s infinite alternate;
-            opacity: 0.45;
+            top: 5%;
+            left: -5%;
+            background: radial-gradient(circle, rgba(253, 123, 65, 0.28) 0%, rgba(253, 123, 65, 0.08) 50%, transparent 70%);
+            animation: orbFloat1 20s infinite alternate;
         }
-        /* Orbe 4: Resaltado sutil en el centro */
+        /* Orbe Gris / Acero Superior Derecho */
+        .orb-2 {
+            width: 580px;
+            height: 580px;
+            top: 10%;
+            right: -10%;
+            background: radial-gradient(circle, rgba(60, 64, 68, 0.35) 0%, rgba(60, 64, 68, 0.1) 45%, transparent 70%);
+            animation: orbFloat2 24s infinite alternate;
+        }
+        /* Orbe Melocotón Suave Inferior Izquierdo */
+        .orb-3 {
+            width: 540px;
+            height: 540px;
+            bottom: 5%;
+            left: -5%;
+            background: radial-gradient(circle, rgba(237, 191, 155, 0.22) 0%, rgba(237, 191, 155, 0.05) 50%, transparent 70%);
+            animation: orbFloat3 22s infinite alternate;
+        }
+        /* Orbe Cobre Tierra Inferior Derecho */
         .orb-4 {
-            width: 440px;
-            height: 440px;
-            top: 50%;
-            left: 32%;
-            background: radial-gradient(circle, rgba(59, 130, 246, 0.4) 0%, rgba(99, 102, 241, 0.2) 45%, rgba(59, 130, 246, 0) 70%);
-            filter: blur(130px);
-            opacity: 0.3;
+            width: 500px;
+            height: 500px;
+            bottom: 10%;
+            right: 0%;
+            background: radial-gradient(circle, rgba(195, 86, 39, 0.25) 0%, rgba(195, 86, 39, 0.08) 45%, transparent 70%);
             animation: orbFloat4 18s infinite alternate;
         }
 
         @keyframes orbFloat1 {
             0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(60px, 45px) scale(1.08); }
-            100% { transform: translate(-35px, 60px) scale(0.96); }
+            50% { transform: translate(50px, 40px) scale(1.06); }
+            100% { transform: translate(-30px, 50px) scale(0.95); }
         }
         @keyframes orbFloat2 {
             0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(-70px, 50px) scale(1.12); }
-            100% { transform: translate(-40px, -45px) scale(0.92); }
+            50% { transform: translate(-60px, 45px) scale(1.1); }
+            100% { transform: translate(-30px, -40px) scale(0.92); }
         }
         @keyframes orbFloat3 {
             0% { transform: translate(0, 0) scale(1); }
-            50% { transform: translate(65px, -50px) scale(1.06); }
-            100% { transform: translate(35px, 30px) scale(0.95); }
+            50% { transform: translate(55px, -45px) scale(1.05); }
+            100% { transform: translate(30px, 25px) scale(0.95); }
         }
         @keyframes orbFloat4 {
-            0% { transform: translate(0, 0) scale(0.92); }
-            100% { transform: translate(-40px, 35px) scale(1.12); }
+            0% { transform: translate(0, 0) scale(0.95); }
+            100% { transform: translate(-35px, 30px) scale(1.08); }
         }
 
-        /* ── Header Liquid Glass ── */
+        /* ── Header ── */
         header {
             position: relative;
             z-index: 10;
-            background: rgba(11, 16, 28, 0.65);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: rgba(13, 14, 17, 0.65);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+            border-top: 1px solid rgba(237, 191, 155, 0.08);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
             padding: 16px 28px;
             display: flex;
             justify-content: space-between;
@@ -180,13 +169,12 @@ HTML_INTERFACE = """<!DOCTYPE html>
             border-radius: 10px;
             display: flex;
             align-items: center;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.35), inset 0 1px 0 #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 4px 18px rgba(0, 0, 0, 0.4);
         }
         .brand-logo {
             width: 38px;
             height: 38px;
-            background: linear-gradient(135deg, #0066ff, #0047ba);
+            background: #c8521a;
             color: #ffffff;
             border-radius: 10px;
             display: flex;
@@ -194,27 +182,12 @@ HTML_INTERFACE = """<!DOCTYPE html>
             justify-content: center;
             font-size: 20px;
             font-weight: 800;
-            box-shadow: 0 4px 15px rgba(0, 102, 255, 0.35);
         }
         .brand-title {
             font-size: 18px;
             font-weight: 800;
-            color: #ffffff;
-            letter-spacing: -0.02em;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        }
-        .badge-cloud {
-            background: rgba(14, 165, 233, 0.15);
-            border: 1px solid rgba(56, 189, 248, 0.35);
-            color: #38bdf8;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 6px 14px;
-            border-radius: 30px;
-            box-shadow: 0 0 20px rgba(14, 165, 233, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.18);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            letter-spacing: 0.02em;
+            color: #e2dcd7;
+            letter-spacing: -0.01em;
         }
         
         main {
@@ -227,41 +200,27 @@ HTML_INTERFACE = """<!DOCTYPE html>
             z-index: 2;
         }
 
-        /* ── Card para Subir Archivo (Liquid Glass Hero Dropzone) ── */
+        /* ── Card para Subir Archivo - Cristal Ahumado con Bisel Melocotón ── */
         .upload-card {
-            background: rgba(17, 24, 40, 0.55);
-            backdrop-filter: blur(24px) saturate(190%);
-            -webkit-backdrop-filter: blur(24px) saturate(190%);
-            border: 2px dashed rgba(255, 255, 255, 0.16);
-            border-radius: 20px;
+            background: rgba(18, 20, 26, 0.45);
+            backdrop-filter: blur(35px) saturate(140%);
+            -webkit-backdrop-filter: blur(35px) saturate(140%);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(237, 191, 155, 0.18);
+            border-left: 1px solid rgba(237, 191, 155, 0.08);
+            border-radius: 24px;
             padding: 48px 28px;
             text-align: center;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.12), inset 0 -1px 0 rgba(0, 0, 0, 0.3);
+            transition: all 0.3s ease;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05);
             position: relative;
             overflow: hidden;
         }
-        .upload-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 200%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
-            transform: skewX(-20deg);
-            pointer-events: none;
-            transition: 0.6s ease;
-        }
-        .upload-card:hover::before {
-            left: 100%;
-        }
         .upload-card:hover, .upload-card.dragover {
-            border-color: #38bdf8;
-            background: rgba(22, 33, 55, 0.7);
+            background: rgba(18, 20, 26, 0.55);
+            border-top: 1px solid rgba(237, 191, 155, 0.28);
             transform: translateY(-2px);
-            box-shadow: 0 25px 60px rgba(0, 102, 255, 0.25), 0 0 30px rgba(56, 189, 248, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.25);
         }
         .upload-icon {
             font-size: 48px;
@@ -271,41 +230,42 @@ HTML_INTERFACE = """<!DOCTYPE html>
         .upload-title {
             font-size: 18px;
             font-weight: 700;
-            color: #ffffff;
+            color: #e2dcd7;
             margin-bottom: 6px;
-            letter-spacing: -0.01em;
-            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
         }
         .upload-hint {
             font-size: 13px;
-            color: #94a3b8;
+            color: #8a8c90;
             margin-bottom: 18px;
         }
         .upload-hint code {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             padding: 3px 8px;
             border-radius: 6px;
-            color: #e2e8f0;
+            color: #e2dcd7;
             font-size: 12px;
         }
         .btn-select {
-            background: linear-gradient(135deg, #0066ff 0%, #0052cc 100%);
-            color: #ffffff;
-            border: 1px solid rgba(255, 255, 255, 0.25);
-            padding: 11px 24px;
+            background: rgba(18, 20, 26, 0.7);
+            color: #be8a68;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-top: 1px solid rgba(237, 191, 155, 0.2);
+            padding: 11px 26px;
             font-size: 13px;
-            font-weight: 700;
-            border-radius: 10px;
+            font-weight: 600;
+            border-radius: 50px;
             cursor: pointer;
             display: inline-block;
             transition: all 0.25s ease;
-            box-shadow: 0 8px 25px rgba(0, 102, 255, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.35);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
         }
         .btn-select:hover {
+            background: #c8521a;
+            border-color: #c8521a;
+            color: #ffffff;
             transform: translateY(-1px);
-            background: linear-gradient(135deg, #1a7bff 0%, #0060e6 100%);
-            box-shadow: 0 12px 30px rgba(0, 102, 255, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+            box-shadow: 0 16px 32px rgba(200, 82, 26, 0.35);
         }
         #fileInput { display: none; }
 
@@ -315,20 +275,18 @@ HTML_INTERFACE = """<!DOCTYPE html>
             margin: 28px 0;
             text-align: center;
             font-size: 14px;
-            color: #38bdf8;
+            color: #fd7b41;
             font-weight: 600;
-            text-shadow: 0 0 15px rgba(56, 189, 248, 0.4);
         }
         .spinner-ring {
             display: inline-block;
             width: 34px;
             height: 34px;
-            border: 3px solid rgba(56, 189, 248, 0.15);
+            border: 3px solid rgba(253, 123, 65, 0.2);
             border-radius: 50%;
-            border-top-color: #38bdf8;
+            border-top-color: #fd7b41;
             animation: spin 0.8s linear infinite;
             margin-bottom: 12px;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.3);
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -338,164 +296,136 @@ HTML_INTERFACE = """<!DOCTYPE html>
             margin-top: 26px;
         }
 
+        /* 3. Barra de Identidad del Cliente (Ahumado Oscuro) */
         .client-banner {
-            background: rgba(17, 24, 40, 0.65);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(10, 12, 16, 0.6);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.01);
+            border-top: 1px solid rgba(237, 191, 155, 0.12);
             border-radius: 14px;
-            padding: 16px 22px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            box-shadow: 0 12px 35px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            padding: 14px 20px;
+            margin-bottom: 18px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
         }
         .client-meta h3 {
-            font-size: 17px;
+            font-size: 1.15rem;
             font-weight: 800;
-            color: #ffffff;
+            color: #e2dcd7;
+            letter-spacing: 0.02em;
             margin-bottom: 4px;
-            letter-spacing: -0.01em;
         }
         .client-meta p {
-            font-size: 13px;
-            color: #94a3b8;
+            font-size: 0.85rem;
+            color: #9f9da2;
         }
 
+        /* 4. Tarjetas KPI Premium con Reflejos y Bordes de Acento */
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 14px;
-            margin-bottom: 18px;
+            margin-bottom: 20px;
         }
         .kpi-item {
-            border-radius: 14px;
-            padding: 14px 16px;
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            background: rgba(18, 20, 26, 0.35);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.01);
+            border-top: 1px solid rgba(237, 191, 155, 0.1);
+            border-radius: 18px;
+            padding: 16px 18px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 110px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s ease;
         }
         .kpi-item:hover {
             transform: translateY(-2px);
         }
-        .kpi-item.cicladas {
-            background: rgba(14, 165, 233, 0.08);
-            border: 1px solid rgba(56, 189, 248, 0.25);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        .kpi-item.pagos {
-            background: rgba(34, 197, 94, 0.08);
-            border: 1px solid rgba(74, 222, 128, 0.25);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        .kpi-item.mora {
-            background: rgba(239, 68, 68, 0.1);
-            border: 1px solid rgba(248, 113, 113, 0.35);
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        .kpi-item.ok {
-            background: rgba(34, 197, 94, 0.08);
-            border: 1px solid rgba(74, 222, 128, 0.25);
-            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
+        .kpi-item.cicladas { border-bottom: 3.5px solid #a0a2a6; } /* Gris apagado */
+        .kpi-item.pagos { border-bottom: 3.5px solid #b08c6a; }    /* Melocotón suave */
+        .kpi-item.mora { border-bottom: 3.5px solid #c8521a; }     /* Naranja Calcite en mora */
+        .kpi-item.ok { border-bottom: 3.5px solid #b08c6a; }
+        .kpi-item.saldo-mora { border-bottom: 3.5px solid #c8521a; }
+        .kpi-item.saldo-ok { border-bottom: 3.5px solid #b08c6a; }
+
         .kpi-title {
             font-size: 11px;
-            font-weight: 700;
+            font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            color: #94a3b8;
+            color: #8a8c90;
             margin-bottom: 4px;
         }
         .kpi-val {
-            font-size: 24px;
-            font-weight: 800;
+            font-size: 26px;
+            font-weight: 700;
             line-height: 1.1;
-            letter-spacing: -0.02em;
+            margin: 4px 0;
         }
         .kpi-val.blue {
-            color: #38bdf8;
-            text-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+            color: #e2dcd7;
         }
         .kpi-val.green {
-            color: #4ade80;
-            text-shadow: 0 0 20px rgba(74, 222, 128, 0.4);
+            color: #edbf9b;
         }
         .kpi-val.red {
-            color: #f87171;
-            text-shadow: 0 0 20px rgba(248, 113, 113, 0.4);
+            color: #fd7b41;
         }
         .kpi-sub {
             font-size: 11px;
-            color: #64748b;
+            color: #9f9da2;
             margin-top: 5px;
         }
 
-        /* ── Action Bar con Botones Liquid Glass ── */
+        /* 5. Botones de Descarga en Acero/Cobre */
         .action-bar {
             display: flex;
-            gap: 12px;
+            gap: 14px;
             margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
         }
         .btn-action {
-            padding: 12px 24px;
-            font-size: 14px;
-            font-weight: 700;
-            border-radius: 12px;
-            border: 1px solid transparent;
+            background: rgba(18, 20, 26, 0.6);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-top: 1px solid rgba(237, 191, 155, 0.15);
+            border-radius: 50px;
+            color: #be8a68;
+            font-weight: 600;
+            font-size: 13px;
+            padding: 0.6rem 1.8rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             text-decoration: none;
-            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            letter-spacing: -0.01em;
+            transition: all 0.2s ease;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
         .btn-action:hover {
+            background: #c8521a;
+            border-color: #c8521a;
+            color: #ffffff;
             transform: translateY(-2px);
-            filter: brightness(1.1);
-        }
-        .btn-action:active {
-            transform: translateY(0);
+            box-shadow: 0 16px 32px rgba(200, 82, 26, 0.35);
         }
 
-        .btn-download-pdf {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(29, 78, 216, 1));
-            border-color: rgba(96, 165, 250, 0.5);
-            color: #ffffff;
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        .btn-download-img {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 1));
-            border-color: rgba(110, 231, 183, 0.5);
-            color: #ffffff;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-
-        /* ── Preview Box Liquid Glass ── */
+        /* 6. Vista del visor de reportes - Fundido sutil */
         .preview-box {
-            background: rgba(15, 23, 42, 0.65);
-            backdrop-filter: blur(24px) saturate(180%);
-            -webkit-backdrop-filter: blur(24px) saturate(180%);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
+            box-shadow: 0 -15px 40px rgba(10, 13, 22, 0.9);
+            border-top: 1px solid rgba(237, 191, 155, 0.05);
+            border-radius: 24px 24px 0px 0px;
+            background-color: #ffffff;
             overflow: hidden;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-        }
-        .preview-header {
-            background: rgba(255, 255, 255, 0.03);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 12px 20px;
-            font-size: 12px;
-            font-weight: 700;
-            color: #cbd5e1;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            padding-top: 5px;
         }
         iframe#previewFrame {
             width: 100%;
@@ -503,8 +433,6 @@ HTML_INTERFACE = """<!DOCTYPE html>
             border: none;
             display: block;
             background: #ffffff;
-            border-bottom-left-radius: 16px;
-            border-bottom-right-radius: 16px;
         }
 
         footer {
@@ -513,9 +441,9 @@ HTML_INTERFACE = """<!DOCTYPE html>
             text-align: center;
             padding: 20px;
             font-size: 12px;
-            color: #64748b;
-            border-top: 1px solid rgba(255, 255, 255, 0.06);
-            background: rgba(10, 15, 26, 0.65);
+            color: #8a8c90;
+            border-top: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(10, 12, 16, 0.6);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             margin-top: auto;

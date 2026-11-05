@@ -24,68 +24,165 @@ st.set_page_config(
 # Estilos CSS ejecutivos para la interfaz web
 st.markdown("""
 <style>
-    /* Estilo Liquid Glass Premium & Fondo Dark Blue-Grey */
+    /* 1. Fondo Atmosférico Ultra-Oscuro con Orbes Calcite de la GPU */
     .stApp {
-        background-color: #0b0f19 !important;
+        background-color: #0d0e11 !important;
         background-image: 
-            radial-gradient(ellipse 90% 60% at 50% -15%, #152238 0%, transparent 80%),
-            radial-gradient(circle at 100% 100%, #0d1527 0%, transparent 50%),
-            linear-gradient(180deg, #090d16 0%, #0b0f19 50%, #080c14 100%) !important;
-        color: #f8fafc !important;
+            radial-gradient(circle at 10% 20%, rgba(15, 17, 22, 0.95) 0%, #0d0e11 100%) !important;
+        color: #e2dcd7 !important; /* Texto principal claro y cálido */
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        position: relative;
+        overflow-x: hidden;
     }
-    .main-title {
-        font-size: 26px;
-        font-weight: 800;
-        color: #ffffff;
-        letter-spacing: -0.02em;
-        text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+
+    /* Capa de orbes difuminados de fondo */
+    .stApp::before {
+        content: "";
+        position: absolute;
+        top: -10%; left: -10%; width: 120%; height: 120%;
+        background: 
+            /* Orbe Naranja Encendido Superior Izquierdo */
+            radial-gradient(circle at 5% 25%, rgba(253, 123, 65, 0.14) 0%, transparent 45%),
+            /* Orbe Melocotón Suave Inferior Izquierdo */
+            radial-gradient(circle at 10% 80%, rgba(237, 191, 155, 0.1) 0%, transparent 42%),
+            /* Orbe Gris/Acero Superior Derecho (Bajo contraste) */
+            radial-gradient(circle at 85% 20%, rgba(60, 64, 68, 0.15) 0%, transparent 40%),
+            /* Orbe Cobre Tierra Inferior Derecho (Ambiental) */
+            radial-gradient(circle at 90% 75%, rgba(195, 86, 39, 0.12) 0%, transparent 45%);
+        pointer-events: none;
+        z-index: 0;
+        filter: blur(100px); /* Desenfoque extremo para suavizar los orbes */
     }
-    .sub-title {
-        font-size: 14px;
-        color: #94a3b8;
-        margin-bottom: 20px;
+
+    /* Evitar que Streamlit tape el efecto de los orbes */
+    .stApp > div {
+        position: relative;
+        z-index: 1;
     }
-    .metric-card-cicladas {
-        background: rgba(14, 165, 233, 0.08);
-        border: 1px solid rgba(56, 189, 248, 0.25);
-        border-radius: 12px;
-        padding: 14px;
-        text-align: center;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+
+    header[data-testid="stHeader"] { background: transparent; }
+    .block-container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
+
+    /* 2. Área de Carga - Cristal Ahumado con Alta Refracción */
+    div[data-testid="stFileUploader"] {
+        background: rgba(18, 20, 26, 0.45) !important;
+        backdrop-filter: blur(35px) saturate(140%);
+        -webkit-backdrop-filter: blur(35px) saturate(140%);
+        border: 1px solid rgba(255, 255, 255, 0.02) !important;
+        border-top: 1px solid rgba(237, 191, 155, 0.18) !important; /* Bisel melocotón sutil */
+        border-left: 1px solid rgba(237, 191, 155, 0.08) !important;
+        border-radius: 24px !important;
+        padding: 2.2rem !important;
+        box-shadow: 
+            0 40px 80px rgba(0, 0, 0, 0.65), 
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+        transition: all 0.3s ease;
     }
-    .metric-card-pagos {
-        background: rgba(34, 197, 94, 0.08);
-        border: 1px solid rgba(74, 222, 128, 0.25);
-        border-radius: 12px;
-        padding: 14px;
-        text-align: center;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    div[data-testid="stFileUploader"]:hover {
+        background: rgba(18, 20, 26, 0.55) !important;
+        border-top: 1px solid rgba(237, 191, 155, 0.28) !important;
     }
-    .metric-card-mora {
-        background: rgba(239, 68, 68, 0.1);
-        border: 1px solid rgba(248, 113, 113, 0.35);
-        border-radius: 12px;
-        padding: 14px;
-        text-align: center;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 10px 25px rgba(239, 68, 68, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    div[data-testid="stFileUploader"] p { color: #8a8c90 !important; }
+
+    /* 3. Barra de Identidad del Cliente (Ahumado Oscuro) */
+    .client-badge-bar {
+        background: rgba(10, 12, 16, 0.6) !important;
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.01) !important;
+        border-top: 1px solid rgba(237, 191, 155, 0.12) !important;
+        border-radius: 14px !important;
+        padding: 14px 20px !important;
+        margin: 1.5rem 0 !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45) !important;
     }
-    .metric-card-ok {
-        background: rgba(34, 197, 94, 0.08);
-        border: 1px solid rgba(74, 222, 128, 0.25);
-        border-radius: 12px;
-        padding: 14px;
-        text-align: center;
-        backdrop-filter: blur(20px);
-        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+    .client-name { 
+        color: #e2dcd7 !important; 
+        font-weight: 800 !important; /* Más jerarquía visual */
+        font-size: 1.15rem !important; 
+        letter-spacing: 0.02em !important;
     }
-    .metric-val-blue { font-size: 26px; font-weight: 800; color: #38bdf8; text-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
-    .metric-val-green { font-size: 26px; font-weight: 800; color: #4ade80; text-shadow: 0 0 15px rgba(74, 222, 128, 0.4); }
-    .metric-val-red { font-size: 26px; font-weight: 800; color: #f87171; text-shadow: 0 0 15px rgba(248, 113, 113, 0.4); }
-    .metric-lbl { font-size: 11px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.05em; }
-    .metric-sub { font-size: 11px; color: #64748b; margin-top: 3px; }
+    .client-meta { 
+        color: #9f9da2 !important; /* Gris suave de excelente contraste */
+        font-size: 0.85rem !important;
+    }
+
+    /* 4. Tarjetas KPI Premium con Reflejos y Bordes de Acento */
+    .kpi-grid-card {
+        background: rgba(18, 20, 26, 0.35) !important;
+        backdrop-filter: blur(25px);
+        -webkit-backdrop-filter: blur(25px);
+        border: 1px solid rgba(255, 255, 255, 0.01) !important;
+        border-top: 1px solid rgba(237, 191, 155, 0.1) !important;
+        border-radius: 18px !important;
+        padding: 16px 18px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 110px !important;
+        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5) !important;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    /* Reflejo biselado de cristal */
+    .kpi-grid-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: -150%; width: 80%; height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
+        transform: skewX(-25deg);
+        pointer-events: none;
+    }
+
+    /* Bordes inferiores de acento */
+    .kpi-cicladas { border-bottom: 3.5px solid #a0a2a6 !important; } /* Gris apagado */
+    .kpi-pagos { border-bottom: 3.5px solid #b08c6a !important; }    /* Melocotón suave */
+    .kpi-mora { border-bottom: 3.5px solid #c8521a; }     /* Naranja Calcite en mora */
+    .kpi-saldo { border-bottom: 3.5px solid #c8521a; }    /* Naranja Calcite en saldo */
+
+    /* Tipografías y Datos de las Tarjetas */
+    .kpi-title { font-size: 11px; font-weight: 600; color: #8a8c90; letter-spacing: 0.05em; text-transform: uppercase; }
+    .kpi-value-blue  { font-size: 26px; font-weight: 700; color: #e2dcd7; margin: 4px 0; }
+    .kpi-value-green { font-size: 26px; font-weight: 700; color: #edbf9b; margin: 4px 0; }
+    .kpi-value-red   { font-size: 26px; font-weight: 700; color: #fd7b41; margin: 4px 0; }
+    .kpi-value-pink  { font-size: 26px; font-weight: 700; color: #fd7b41; margin: 4px 0; }
+    
+    /* Ajustes de contraste para legibilidad de letras pequeñas */
+    .kpi-footer { font-size: 11px; color: #9f9da2 !important; }
+
+    /* 5. Botones de Descarga en Acero/Cobre */
+    div.stDownloadButton > button {
+        background: rgba(18, 20, 26, 0.6) !important;
+        backdrop-filter: blur(15px) !important;
+        -webkit-backdrop-filter: blur(15px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.02) !important;
+        border-top: 1px solid rgba(237, 191, 155, 0.15) !important;
+        border-radius: 50px !important;
+        color: #be8a68 !important;
+        font-weight: 600 !important;
+        padding: 0.5rem 1.6rem !important;
+        box-shadow: 
+            0 12px 24px rgba(0, 0, 0, 0.35), 
+            inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+        transition: all 0.2s ease !important;
+    }
+    div.stDownloadButton > button:hover {
+        background: #c8521a !important; /* Glow y color naranja encendido */
+        border-color: #c8521a !important;
+        color: #ffffff !important;
+        transform: translateY(-2px);
+        box-shadow: 0 16px 32px rgba(200, 82, 26, 0.35) !important;
+    }
+
+    /* 6. Vista del visor de reportes - Fundido sutil (Previene corte tosco) */
+    div.report-container {
+        box-shadow: 0 -15px 40px rgba(10, 13, 22, 0.9);
+        border-top: 1px solid rgba(237, 191, 155, 0.05);
+        border-radius: 24px 24px 0px 0px;
+        background-color: #ffffff;
+        padding-top: 5px;
+    }
 </style>
 """, unsafe_allow_html=True)
 
