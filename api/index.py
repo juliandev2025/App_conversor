@@ -551,7 +551,6 @@ HTML_INTERFACE = """<!DOCTYPE html>
                 <div class="brand-title">App Conversor de Cronogramas</div>
             </div>
         </div>
-        <span class="badge-cloud">⚡ Vercel Cloud Ready</span>
     </header>
 
     <main>
@@ -611,10 +610,6 @@ HTML_INTERFACE = """<!DOCTYPE html>
             </div>
 
             <div class="preview-box">
-                <div class="preview-header">
-                    <span>👁️ Vista Previa del Reporte Oficial (Formato idéntico a Plantilla)</span>
-                    <span style="font-size: 11px; color: var(--slate-500);">Documento vectorial de alta fidelidad</span>
-                </div>
                 <iframe id="previewFrame"></iframe>
             </div>
         </div>
