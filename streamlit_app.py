@@ -201,19 +201,40 @@ st.markdown("""
         background-color: #ffffff;
         padding-top: 5px;
     }
+
+    /* Logo centrado en el header */
+    .header-logo-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+        margin: 0.5rem 0 1.8rem 0;
+    }
+    .header-logo-container img {
+        width: 280px;
+        max-width: 90%;
+        height: auto;
+        object-fit: contain;
+        filter: drop-shadow(0 4px 14px rgba(0, 0, 0, 0.45));
+    }
 </style>
 """, unsafe_allow_html=True)
 
-# Encabezado con Logo oficial KrediYA
-col_logo, col_title = st.columns([1.2, 4.8])
-with col_logo:
-    logo_path = os.path.join(os.path.dirname(__file__), "assets", "krediya_logo.png")
-    if os.path.exists(logo_path):
-        st.image(logo_path, use_container_width=True)
-    elif logo_data:
-        st.image(logo_data.get_krediya_logo_bytes(), use_container_width=True)
-with col_title:
-    st.markdown('<div class="main-title">App Conversor de Cronogramas</div>', unsafe_allow_html=True)
+# Logo centrado en el Header
+logo_path = os.path.join(os.path.dirname(__file__), "assets", "krediya_logo.png")
+if os.path.exists(logo_path):
+    import base64
+    with open(logo_path, "rb") as _img_f:
+        _b64_logo = base64.b64encode(_img_f.read()).decode("ascii")
+    st.markdown(
+        f'<div class="header-logo-container"><img src="data:image/png;base64,{_b64_logo}" alt="KredYA Logo"></div>',
+        unsafe_allow_html=True
+    )
+elif logo_data:
+    st.markdown(
+        f'<div class="header-logo-container"><img src="{logo_data.KREDIYA_LOGO_DATA_URI}" alt="KredYA Logo"></div>',
+        unsafe_allow_html=True
+    )
 
 uploaded_files = st.file_uploader(
     "Arrastra el cronograma generado por Admin (`cronograma_*.pdf`)",

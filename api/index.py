@@ -153,9 +153,9 @@ HTML_INTERFACE = """<!DOCTYPE html>
             border-bottom: 1px solid rgba(255, 255, 255, 0.03);
             border-top: 1px solid rgba(237, 191, 155, 0.08);
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
-            padding: 16px 28px;
+            padding: 14px 28px;
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
         }
         .brand {
@@ -481,18 +481,10 @@ HTML_INTERFACE = """<!DOCTYPE html>
     </div>
 
     <header>
-        <div class="brand">
+        <div class="header-logo-container" style="display: flex; justify-content: center; align-items: center; width: 100%;">
             {% if logo_uri %}
-            <div class="brand-logo-card">
-                <img src="{{ logo_uri }}" alt="KrediYA" style="height: 32px; width: auto; object-fit: contain;">
-            </div>
-            <div style="border-left: 1px solid rgba(255, 255, 255, 0.12); padding-left: 16px;">
-            {% else %}
-            <div class="brand-logo">📄</div>
-            <div>
+            <img src="{{ logo_uri }}" alt="KrdYA Logo" style="height: 48px; width: auto; max-width: 90%; object-fit: contain; filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));">
             {% endif %}
-                <div class="brand-title">App Conversor de Cronogramas</div>
-            </div>
         </div>
     </header>
 
