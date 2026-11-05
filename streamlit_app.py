@@ -199,66 +199,30 @@ if uploaded_files:
             """, unsafe_allow_html=True)
 
         st.write("")
-        # Botones para abrir directamente en nueva pestaña del navegador
-        st.write("#### ⚡ Acceso Rápido (Nueva Pestaña del Navegador)")
-        open_c1, open_c2 = st.columns(2)
-        with open_c1:
-            import base64
-            b64_pdf = base64.b64encode(pdf_bytes).decode()
-            st.markdown(
-                f'<a href="data:application/pdf;base64,{b64_pdf}" target="_blank" '
-                f'style="display:block;padding:10px 16px;background:#0052cc;color:#ffffff;border-radius:6px;font-weight:700;text-decoration:none;text-align:center;">'
-                f'📄 Abrir PDF Oficial en Nueva Pestaña</a>',
-                unsafe_allow_html=True
-            )
-        with open_c2:
-            if image_bytes_list:
-                import base64
-                b64_img = base64.b64encode(image_bytes_list[0][1]).decode()
-                st.markdown(
-                    f'<a href="data:image/png;base64,{b64_img}" target="_blank" '
-                    f'style="display:block;padding:10px 16px;background:#7c3aed;color:#ffffff;border-radius:6px;font-weight:700;text-decoration:none;text-align:center;">'
-                    f'🖼️ Abrir Imagen HD en Nueva Pestaña</a>',
-                    unsafe_allow_html=True
-                )
-
-        st.write("")
-        # Fila de botones de descarga
-        st.write("#### 💾 Opciones de Descarga")
+        # Fila de botones de descarga principales
         report_base = conversor_core.build_report_basename(data)
-        cols_btn = st.columns(max(3, 2 + len(image_bytes_list)))
+        col_btn_pdf, col_btn_img = st.columns(2)
 
-        with cols_btn[0]:
+        with col_btn_pdf:
             st.download_button(
-                label="📥 Descargar PDF Oficial",
+                label="📥 Descargar PDF",
                 data=pdf_bytes,
                 file_name=f"{report_base}.pdf",
                 mime="application/pdf",
                 type="primary",
                 use_container_width=True
             )
-        with cols_btn[1]:
-            if txt_content:
+
+        with col_btn_img:
+            if image_bytes_list:
+                img_data = image_bytes_list[0][1]
                 st.download_button(
-                    label="📝 Descargar TXT",
-                    data=txt_content.encode("utf-8-sig"),
-                    file_name=f"{report_base}.txt",
-                    mime="text/plain",
+                    label="🖼️ Descargar Imagen",
+                    data=img_data,
+                    file_name=f"{report_base}.png",
+                    mime="image/png",
                     use_container_width=True
                 )
-
-        for idx, (img_name, img_data) in enumerate(image_bytes_list):
-            if idx + 2 < len(cols_btn):
-                with cols_btn[idx + 2]:
-                    label_p = f"🖼️ Descargar Imagen (Pág. {idx+1})" if len(image_bytes_list) > 1 else "🖼️ Descargar Imagen HD"
-                    file_name_img = f"{report_base}_pagina_{idx+1}.png" if len(image_bytes_list) > 1 else f"{report_base}.png"
-                    st.download_button(
-                        label=label_p,
-                        data=img_data,
-                        file_name=file_name_img,
-                        mime="image/png",
-                        use_container_width=True
-                    )
 
         # Vista rápida del archivo TXT
         if txt_content:

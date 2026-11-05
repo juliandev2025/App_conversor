@@ -434,21 +434,21 @@ HTML_INTERFACE = """<!DOCTYPE html>
         /* ── Action Bar con Botones Liquid Glass ── */
         .action-bar {
             display: flex;
-            gap: 10px;
-            margin-bottom: 18px;
+            gap: 12px;
+            margin-bottom: 20px;
             flex-wrap: wrap;
             align-items: center;
         }
         .btn-action {
-            padding: 11px 18px;
-            font-size: 13px;
+            padding: 12px 24px;
+            font-size: 14px;
             font-weight: 700;
-            border-radius: 10px;
+            border-radius: 12px;
             border: 1px solid transparent;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
-            gap: 7px;
+            gap: 8px;
             text-decoration: none;
             transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             backdrop-filter: blur(16px);
@@ -463,51 +463,17 @@ HTML_INTERFACE = """<!DOCTYPE html>
             transform: translateY(0);
         }
 
-        .btn-open-pdf {
-            background: linear-gradient(135deg, rgba(37, 99, 235, 0.9), rgba(29, 78, 216, 0.95));
-            border-color: rgba(96, 165, 250, 0.45);
-            color: #ffffff;
-            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        .btn-open-img {
-            background: linear-gradient(135deg, rgba(139, 92, 246, 0.9), rgba(109, 40, 217, 0.95));
-            border-color: rgba(192, 132, 252, 0.45);
-            color: #ffffff;
-            box-shadow: 0 8px 25px rgba(139, 92, 246, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
         .btn-download-pdf {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.18);
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.95), rgba(29, 78, 216, 1));
+            border-color: rgba(96, 165, 250, 0.5);
             color: #ffffff;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(37, 99, 235, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
         .btn-download-img {
-            background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(5, 150, 105, 0.95));
-            border-color: rgba(110, 231, 183, 0.45);
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.95), rgba(5, 150, 105, 1));
+            border-color: rgba(110, 231, 183, 0.5);
             color: #ffffff;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.3);
-        }
-        .btn-download-txt {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 255, 255, 0.14);
-            color: #cbd5e1;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
-        }
-        .btn-html {
-            background: rgba(14, 165, 233, 0.12);
-            border-color: rgba(56, 189, 248, 0.35);
-            color: #38bdf8;
-            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15);
-        }
-        .btn-reset {
-            background: rgba(255, 255, 255, 0.04);
-            border-color: rgba(255, 255, 255, 0.1);
-            color: #94a3b8;
-        }
-        .btn-reset:hover {
-            color: #ffffff;
-            background: rgba(255, 255, 255, 0.08);
-            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.3);
         }
 
         /* ── Preview Box Liquid Glass ── */
@@ -636,26 +602,11 @@ HTML_INTERFACE = """<!DOCTYPE html>
             </div>
 
             <div class="action-bar">
-                <button class="btn-action btn-open-pdf" onclick="openPdfNewTab()" title="Abre el PDF en una nueva pestaña del navegador">
-                    📄 Abrir PDF (Nueva Pestaña)
-                </button>
-                <button class="btn-action btn-open-img" onclick="openImageNewTab(0)" title="Abre la Imagen HD en una nueva pestaña del navegador">
-                    🖼️ Abrir Imagen HD (Nueva Pestaña)
-                </button>
                 <button class="btn-action btn-download-pdf" onclick="downloadServerPdf()">
                     📥 Descargar PDF
                 </button>
                 <button class="btn-action btn-download-img" id="btnDlImg" onclick="downloadServerImage(0)">
                     🖼️ Descargar Imagen
-                </button>
-                <button class="btn-action btn-download-txt" onclick="downloadServerTxt()">
-                    📝 Descargar TXT
-                </button>
-                <button class="btn-action btn-html" onclick="downloadHtml()">
-                    🌐 Descargar HTML
-                </button>
-                <button class="btn-action btn-reset" onclick="resetApp()">
-                    🔄 Convertir otro
                 </button>
             </div>
 
