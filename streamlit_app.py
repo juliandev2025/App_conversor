@@ -305,11 +305,12 @@ if uploaded_files:
             </div>
             """, unsafe_allow_html=True)
         with col4:
+            cuotas_faltantes_text = f"{analysis.get('cuotas_faltantes_count', 0)} cuotas faltantes" if analysis.get('cuotas_faltantes_count', 0) != 1 else "1 cuota faltante"
             st.markdown(f"""
             <div class="kpi-card">
                 <div class="kpi-lbl">Saldo Actual</div>
                 <div class="kpi-val-orange">{data['saldo_actual']}</div>
-                <div class="kpi-sub">Antes de: {data['pagar_antes_de']}</div>
+                <div class="kpi-sub">{cuotas_faltantes_text} | Pagar antes de: {data['pagar_antes_de']}</div>
             </div>
             """, unsafe_allow_html=True)
 

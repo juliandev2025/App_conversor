@@ -713,7 +713,9 @@ HTML_INTERFACE = """<!DOCTYPE html>
                 document.getElementById('kpiMoraSub').textContent = res.analysis.mora_subtitle;
 
                 kpiSaldo.textContent = res.data.saldo_actual;
-                document.getElementById('kpiSaldoSub').textContent = `Pagar antes de: ${res.data.pagar_antes_de}`;
+                const faltantesCount = res.analysis.cuotas_faltantes_count !== undefined ? res.analysis.cuotas_faltantes_count : 0;
+                const faltantesTxt = faltantesCount === 1 ? '1 cuota faltante' : `${faltantesCount} cuotas faltantes`;
+                document.getElementById('kpiSaldoSub').textContent = `${faltantesTxt} | Pagar antes de: ${res.data.pagar_antes_de}`;
 
                 // Cargar iframe
                 const frame = document.getElementById('previewFrame');

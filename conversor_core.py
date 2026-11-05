@@ -470,6 +470,9 @@ def analyze_and_classify_movements(data):
                 f"El primer vencimiento está programado para el {data['pagar_antes_de']} por un valor de **{data['proximo_pago']}**."
             )
 
+    total_cuotas_count = len(cuotas)
+    cuotas_faltantes_count = max(0, total_cuotas_count - total_pagos_verificados)
+
     return {
         "cicladas_count":          cicladas_count,
         "pagos_count":             total_pagos_verificados,
@@ -481,6 +484,8 @@ def analyze_and_classify_movements(data):
         "cuotas_mora":             mora_cuotas_nums,
         "cuotas_mora_total":       mora_total_nums,
         "cuotas_abono_parcial":    mora_parcial_nums,
+        "total_cuotas_count":      total_cuotas_count,
+        "cuotas_faltantes_count":  cuotas_faltantes_count,
     }
 
 def render_html_report(data, analysis):
