@@ -24,34 +24,34 @@ st.set_page_config(
 # Estilos CSS ejecutivos para la interfaz web
 st.markdown("""
 <style>
-    /* 1. Fondo Atmosférico Ultra-Oscuro con Orbes Calcite de la GPU */
+    /* 1. Fondo Atmosférico Ultra-Oscuro con Orbes Calcite de Alta Luminosidad */
     .stApp {
-        background-color: #0d0e11 !important;
+        background-color: #090a0d !important;
         background-image: 
-            radial-gradient(circle at 10% 20%, rgba(15, 17, 22, 0.95) 0%, #0d0e11 100%) !important;
-        color: #e2dcd7 !important; /* Texto principal claro y cálido */
+            radial-gradient(circle at 10% 20%, #101217 0%, #090a0d 100%) !important;
+        color: #f0ece9 !important;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         position: relative;
         overflow-x: hidden;
     }
 
-    /* Capa de orbes difuminados de fondo */
+    /* Capa de orbes difuminados de fondo - Alta intensidad y luminosidad */
     .stApp::before {
         content: "";
         position: absolute;
         top: -10%; left: -10%; width: 120%; height: 120%;
         background: 
-            /* Orbe Naranja Encendido Superior Izquierdo */
-            radial-gradient(circle at 5% 25%, rgba(253, 123, 65, 0.14) 0%, transparent 45%),
-            /* Orbe Melocotón Suave Inferior Izquierdo */
-            radial-gradient(circle at 10% 80%, rgba(237, 191, 155, 0.1) 0%, transparent 42%),
-            /* Orbe Gris/Acero Superior Derecho (Bajo contraste) */
-            radial-gradient(circle at 85% 20%, rgba(60, 64, 68, 0.15) 0%, transparent 40%),
-            /* Orbe Cobre Tierra Inferior Derecho (Ambiental) */
-            radial-gradient(circle at 90% 75%, rgba(195, 86, 39, 0.12) 0%, transparent 45%);
+            /* Orbe 1: Naranja Intenso Encendido Superior Izquierdo */
+            radial-gradient(circle at 5% 20%, rgba(255, 115, 45, 0.85) 0%, rgba(245, 90, 25, 0.45) 35%, rgba(245, 90, 25, 0.1) 60%, transparent 75%),
+            /* Orbe 2: Halo Blanco/Acero Glacial Superior Derecho */
+            radial-gradient(circle at 85% 15%, rgba(185, 205, 225, 0.35) 0%, rgba(140, 160, 180, 0.12) 40%, transparent 65%),
+            /* Orbe 3: Melocotón Crema Suave e Iluminado Inferior Izquierdo */
+            radial-gradient(circle at 8% 85%, rgba(255, 210, 175, 0.7) 0%, rgba(240, 175, 135, 0.32) 40%, rgba(240, 175, 135, 0.08) 65%, transparent 75%),
+            /* Orbe 4: Cobre / Ámbar Encendido Inferior Derecho */
+            radial-gradient(circle at 92% 78%, rgba(245, 110, 40, 0.65) 0%, rgba(210, 80, 25, 0.3) 40%, rgba(210, 80, 25, 0.06) 65%, transparent 75%);
         pointer-events: none;
         z-index: 0;
-        filter: blur(100px); /* Desenfoque extremo para suavizar los orbes */
+        filter: blur(80px);
     }
 
     /* Evitar que Streamlit tape el efecto de los orbes */
@@ -63,119 +63,137 @@ st.markdown("""
     header[data-testid="stHeader"] { background: transparent; }
     .block-container { padding-top: 1.5rem !important; padding-bottom: 1.5rem !important; }
 
-    /* 2. Área de Carga - Cristal Ahumado con Alta Refracción */
+    /* 2. Área de Carga - Cristal Ahumado con Refracción y Borde Cristalino */
     div[data-testid="stFileUploader"] {
-        background: rgba(18, 20, 26, 0.45) !important;
-        backdrop-filter: blur(35px) saturate(140%);
-        -webkit-backdrop-filter: blur(35px) saturate(140%);
-        border: 1px solid rgba(255, 255, 255, 0.02) !important;
-        border-top: 1px solid rgba(237, 191, 155, 0.18) !important; /* Bisel melocotón sutil */
-        border-left: 1px solid rgba(237, 191, 155, 0.08) !important;
-        border-radius: 24px !important;
+        background: rgba(22, 25, 33, 0.38) !important;
+        backdrop-filter: blur(28px) saturate(130%) !important;
+        -webkit-backdrop-filter: blur(28px) saturate(130%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
+        border-radius: 26px !important;
         padding: 2.2rem !important;
         box-shadow: 
-            0 40px 80px rgba(0, 0, 0, 0.65), 
-            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            0 30px 60px rgba(0, 0, 0, 0.5), 
+            inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
         transition: all 0.3s ease;
     }
     div[data-testid="stFileUploader"]:hover {
-        background: rgba(18, 20, 26, 0.55) !important;
-        border-top: 1px solid rgba(237, 191, 155, 0.28) !important;
+        background: rgba(26, 30, 40, 0.48) !important;
+        border-color: rgba(255, 255, 255, 0.25) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.45) !important;
     }
     div[data-testid="stFileUploader"] p { color: #8a8c90 !important; }
+    
+    /* Botón Browse Files de Streamlit */
+    div[data-testid="stFileUploader"] button {
+        background: linear-gradient(180deg, #d35922 0%, #b84312 100%) !important;
+        color: #ffffff !important;
+        border: 1px solid rgba(255, 255, 255, 0.2) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.35) !important;
+        border-radius: 50px !important;
+        font-weight: 600 !important;
+        box-shadow: 0 10px 25px rgba(200, 80, 25, 0.38) !important;
+    }
 
-    /* 3. Barra de Identidad del Cliente (Ahumado Oscuro) */
+    /* 3. Barra de Identidad del Cliente (Ahumado Oscuro con Vidrio Traslúcido) */
     .client-badge-bar {
-        background: rgba(10, 12, 16, 0.6) !important;
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        border: 1px solid rgba(255, 255, 255, 0.01) !important;
-        border-top: 1px solid rgba(237, 191, 155, 0.12) !important;
-        border-radius: 14px !important;
-        padding: 14px 20px !important;
+        background: rgba(22, 25, 33, 0.38) !important;
+        backdrop-filter: blur(28px) !important;
+        -webkit-backdrop-filter: blur(28px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
+        border-radius: 18px !important;
+        padding: 16px 24px !important;
         margin: 1.5rem 0 !important;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
     }
     .client-name { 
-        color: #e2dcd7 !important; 
-        font-weight: 800 !important; /* Más jerarquía visual */
-        font-size: 1.15rem !important; 
+        color: #f0ece9 !important; 
+        font-weight: 800 !important;
+        font-size: 1.18rem !important; 
         letter-spacing: 0.02em !important;
     }
     .client-meta { 
-        color: #9f9da2 !important; /* Gris suave de excelente contraste */
+        color: #a3a1a8 !important;
         font-size: 0.85rem !important;
     }
 
     /* 4. Tarjetas KPI Premium con Reflejos y Bordes de Acento */
-    .kpi-grid-card {
-        background: rgba(18, 20, 26, 0.35) !important;
-        backdrop-filter: blur(25px);
-        -webkit-backdrop-filter: blur(25px);
-        border: 1px solid rgba(255, 255, 255, 0.01) !important;
-        border-top: 1px solid rgba(237, 191, 155, 0.1) !important;
-        border-radius: 18px !important;
-        padding: 16px 18px !important;
+    .kpi-card {
+        background: rgba(22, 25, 33, 0.38) !important;
+        backdrop-filter: blur(28px) !important;
+        -webkit-backdrop-filter: blur(28px) !important;
+        border: 1px solid rgba(255, 255, 255, 0.14) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.28) !important;
+        border-radius: 20px !important;
+        padding: 18px 20px !important;
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        min-height: 110px !important;
-        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5) !important;
+        min-height: 115px !important;
+        box-shadow: 0 25px 45px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
         position: relative;
         overflow: hidden;
     }
     
-    /* Reflejo biselado de cristal */
-    .kpi-grid-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: -150%; width: 80%; height: 100%;
-        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.04), transparent);
-        transform: skewX(-25deg);
-        pointer-events: none;
+    /* Tarjeta Pagos Destacada en Melocotón Calcite */
+    .kpi-card-pagos-solid {
+        background: #efbe98 !important;
+        border: 1px solid rgba(255, 255, 255, 0.45) !important;
+        border-radius: 20px !important;
+        padding: 18px 20px !important;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        min-height: 115px !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
     }
-
-    /* Bordes inferiores de acento */
-    .kpi-cicladas { border-bottom: 3.5px solid #a0a2a6 !important; } /* Gris apagado */
-    .kpi-pagos { border-bottom: 3.5px solid #b08c6a !important; }    /* Melocotón suave */
-    .kpi-mora { border-bottom: 3.5px solid #c8521a; }     /* Naranja Calcite en mora */
-    .kpi-saldo { border-bottom: 3.5px solid #c8521a; }    /* Naranja Calcite en saldo */
+    .kpi-card-pagos-solid .kpi-lbl { color: #523e32 !important; }
+    .kpi-card-pagos-solid .kpi-val { color: #1c1511 !important; font-size: 28px !important; font-weight: 800 !important; margin: 4px 0; }
+    .kpi-card-pagos-solid .kpi-sub { color: #5a463a !important; }
 
     /* Tipografías y Datos de las Tarjetas */
-    .kpi-title { font-size: 11px; font-weight: 600; color: #8a8c90; letter-spacing: 0.05em; text-transform: uppercase; }
-    .kpi-value-blue  { font-size: 26px; font-weight: 700; color: #e2dcd7; margin: 4px 0; }
-    .kpi-value-green { font-size: 26px; font-weight: 700; color: #edbf9b; margin: 4px 0; }
-    .kpi-value-red   { font-size: 26px; font-weight: 700; color: #fd7b41; margin: 4px 0; }
-    .kpi-value-pink  { font-size: 26px; font-weight: 700; color: #fd7b41; margin: 4px 0; }
-    
-    /* Ajustes de contraste para legibilidad de letras pequeñas */
-    .kpi-footer { font-size: 11px; color: #9f9da2 !important; }
+    .kpi-lbl { font-size: 11px; font-weight: 600; color: #8a8c90; letter-spacing: 0.05em; text-transform: uppercase; }
+    .kpi-val-cicladas { font-size: 28px; font-weight: 700; color: #f0ece9; margin: 4px 0; }
+    .kpi-val-orange { font-size: 28px; font-weight: 700; color: #fd7b41; margin: 4px 0; }
+    .kpi-sub { font-size: 11px; color: #9f9da2 !important; }
 
     /* 5. Botones de Descarga en Acero/Cobre */
     div.stDownloadButton > button {
-        background: rgba(18, 20, 26, 0.6) !important;
-        backdrop-filter: blur(15px) !important;
-        -webkit-backdrop-filter: blur(15px) !important;
-        border: 1px solid rgba(255, 255, 255, 0.02) !important;
-        border-top: 1px solid rgba(237, 191, 155, 0.15) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
         border-radius: 50px !important;
-        color: #be8a68 !important;
         font-weight: 600 !important;
-        padding: 0.5rem 1.6rem !important;
-        box-shadow: 
-            0 12px 24px rgba(0, 0, 0, 0.35), 
-            inset 0 1px 0 rgba(255, 255, 255, 0.03) !important;
+        padding: 0.65rem 1.9rem !important;
         transition: all 0.2s ease !important;
     }
-    div.stDownloadButton > button:hover {
-        background: #c8521a !important; /* Glow y color naranja encendido */
-        border-color: #c8521a !important;
+    div.btn-col-pdf div.stDownloadButton > button {
+        background: linear-gradient(180deg, #d35922 0%, #b84312 100%) !important;
+        border: 1px solid rgba(255, 255, 255, 0.22) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.4) !important;
+        color: #ffffff !important;
+        box-shadow: 0 12px 28px rgba(200, 80, 25, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25) !important;
+    }
+    div.btn-col-pdf div.stDownloadButton > button:hover {
+        background: linear-gradient(180deg, #e4662d 0%, #c44a16 100%) !important;
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(230, 90, 30, 0.55) !important;
+    }
+    div.btn-col-img div.stDownloadButton > button {
+        background: rgba(30, 34, 44, 0.45) !important;
+        border: 1px solid rgba(255, 255, 255, 0.16) !important;
+        border-top: 1px solid rgba(255, 255, 255, 0.3) !important;
+        color: #f0ece9 !important;
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+    }
+    div.btn-col-img div.stDownloadButton > button:hover {
+        background: rgba(38, 44, 58, 0.6) !important;
+        border-color: rgba(255, 255, 255, 0.3) !important;
         color: #ffffff !important;
         transform: translateY(-2px);
-        box-shadow: 0 16px 32px rgba(200, 82, 26, 0.35) !important;
     }
 
-    /* 6. Vista del visor de reportes - Fundido sutil (Previene corte tosco) */
+    /* 6. Vista del visor de reportes */
     div.report-container {
         box-shadow: 0 -15px 40px rgba(10, 13, 22, 0.9);
         border-top: 1px solid rgba(237, 191, 155, 0.05);
@@ -252,46 +270,46 @@ if uploaded_files:
                     try: os.remove(tmp_pdf_path)
                     except: pass
 
-        # Sección del cliente
-        st.divider()
-        st.subheader(f"👤 Cliente: {data['nombre']} (Contrato: {data['contrato']})")
+        # Barra de Identidad del Cliente estilo Glassmorphism
+        st.markdown(f"""
+        <div class="client-badge-bar">
+            <div class="client-name">{data['nombre']}</div>
+            <div class="client-meta">Contrato: {data['contrato']} | Cédula: {data['identificacion']} | Saldo Pendiente: {data['saldo_actual']}</div>
+        </div>
+        """, unsafe_allow_html=True)
 
-        # Fila de métricas
+        # Fila de métricas estilo Glassmorphism
         col1, col2, col3, col4 = st.columns(4)
         with col1:
             st.markdown(f"""
-            <div class="metric-card-cicladas">
-                <div class="metric-lbl">Cuotas Cicladas</div>
-                <div class="metric-val-blue">{analysis['cicladas_count']}</div>
-                <div class="metric-sub">Vencidas a la fecha</div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Cuotas Cicladas</div>
+                <div class="kpi-val-cicladas">{analysis['cicladas_count']}</div>
+                <div class="kpi-sub">Vencidas a la fecha</div>
             </div>
             """, unsafe_allow_html=True)
         with col2:
             st.markdown(f"""
-            <div class="metric-card-pagos">
-                <div class="metric-lbl">Pagos Aplicados</div>
-                <div class="metric-val-green">{analysis['pagos_count']}</div>
-                <div class="metric-sub">Total: {analysis['total_pagado_str']}</div>
+            <div class="kpi-card-pagos-solid">
+                <div class="kpi-lbl">Pagos Aplicados</div>
+                <div class="kpi-val">{analysis['pagos_count']}</div>
+                <div class="kpi-sub">Total: {analysis['total_pagado_str']}</div>
             </div>
             """, unsafe_allow_html=True)
         with col3:
-            card_class = "metric-card-mora" if analysis['mora_count'] > 0 else "metric-card-ok"
-            val_class = "metric-val-red" if analysis['mora_count'] > 0 else "metric-val-green"
             st.markdown(f"""
-            <div class="{card_class}">
-                <div class="metric-lbl">Cuotas Atrasadas</div>
-                <div class="{val_class}">{analysis['mora_count']}</div>
-                <div class="metric-sub">{analysis['mora_subtitle']}</div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Cuotas Atrasadas</div>
+                <div class="kpi-val-orange">{analysis['mora_count']}</div>
+                <div class="kpi-sub">{analysis['mora_subtitle']}</div>
             </div>
             """, unsafe_allow_html=True)
         with col4:
-            card_class = "metric-card-mora" if analysis['mora_count'] > 0 else "metric-card-ok"
-            val_class = "metric-val-red" if analysis['mora_count'] > 0 else "metric-val-green"
             st.markdown(f"""
-            <div class="{card_class}">
-                <div class="metric-lbl">Saldo Actual</div>
-                <div class="{val_class}">{data['saldo_actual']}</div>
-                <div class="metric-sub">Antes de: {data['pagar_antes_de']}</div>
+            <div class="kpi-card">
+                <div class="kpi-lbl">Saldo Actual</div>
+                <div class="kpi-val-orange">{data['saldo_actual']}</div>
+                <div class="kpi-sub">Antes de: {data['pagar_antes_de']}</div>
             </div>
             """, unsafe_allow_html=True)
 
@@ -301,6 +319,7 @@ if uploaded_files:
         col_btn_pdf, col_btn_img = st.columns(2)
 
         with col_btn_pdf:
+            st.markdown('<div class="btn-col-pdf">', unsafe_allow_html=True)
             st.download_button(
                 label="📥 Descargar PDF",
                 data=pdf_bytes,
@@ -309,8 +328,10 @@ if uploaded_files:
                 type="primary",
                 use_container_width=True
             )
+            st.markdown('</div>', unsafe_allow_html=True)
 
         with col_btn_img:
+            st.markdown('<div class="btn-col-img">', unsafe_allow_html=True)
             if image_bytes_list:
                 img_data = image_bytes_list[0][1]
                 st.download_button(
@@ -320,6 +341,7 @@ if uploaded_files:
                     mime="image/png",
                     use_container_width=True
                 )
+            st.markdown('</div>', unsafe_allow_html=True)
 
         # Vista rápida del archivo TXT
         if txt_content:

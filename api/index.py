@@ -79,47 +79,47 @@ HTML_INTERFACE = """<!DOCTYPE html>
         .orb {
             position: absolute;
             border-radius: 50%;
-            filter: blur(100px);
-            opacity: 0.6;
+            filter: blur(80px);
+            opacity: 0.95;
             mix-blend-mode: screen;
             animation-iteration-count: infinite;
             animation-direction: alternate;
             animation-timing-function: ease-in-out;
         }
-        /* Orbe Naranja Encendido Superior Izquierdo */
+        /* Orbe 1: Naranja Intenso Encendido Superior Izquierdo */
         .orb-1 {
-            width: 520px;
-            height: 520px;
-            top: 5%;
-            left: -5%;
-            background: radial-gradient(circle, rgba(253, 123, 65, 0.28) 0%, rgba(253, 123, 65, 0.08) 50%, transparent 70%);
+            width: 620px;
+            height: 620px;
+            top: -6%;
+            left: -12%;
+            background: radial-gradient(circle, rgba(255, 115, 45, 0.9) 0%, rgba(245, 90, 25, 0.5) 40%, rgba(245, 90, 25, 0.12) 65%, transparent 75%);
             animation: orbFloat1 20s infinite alternate;
         }
-        /* Orbe Gris / Acero Superior Derecho */
+        /* Orbe 2: Halo Blanco/Acero Glacial Superior Derecho */
         .orb-2 {
-            width: 580px;
-            height: 580px;
-            top: 10%;
-            right: -10%;
-            background: radial-gradient(circle, rgba(60, 64, 68, 0.35) 0%, rgba(60, 64, 68, 0.1) 45%, transparent 70%);
+            width: 480px;
+            height: 480px;
+            top: 5%;
+            right: 8%;
+            background: radial-gradient(circle, rgba(185, 205, 225, 0.45) 0%, rgba(140, 160, 180, 0.18) 45%, transparent 72%);
             animation: orbFloat2 24s infinite alternate;
         }
-        /* Orbe Melocotón Suave Inferior Izquierdo */
+        /* Orbe 3: Melocotón Crema Suave e Iluminado Inferior Izquierdo */
         .orb-3 {
-            width: 540px;
-            height: 540px;
-            bottom: 5%;
-            left: -5%;
-            background: radial-gradient(circle, rgba(237, 191, 155, 0.22) 0%, rgba(237, 191, 155, 0.05) 50%, transparent 70%);
+            width: 600px;
+            height: 600px;
+            bottom: -8%;
+            left: -6%;
+            background: radial-gradient(circle, rgba(255, 210, 175, 0.75) 0%, rgba(240, 175, 135, 0.38) 45%, rgba(240, 175, 135, 0.08) 68%, transparent 78%);
             animation: orbFloat3 22s infinite alternate;
         }
-        /* Orbe Cobre Tierra Inferior Derecho */
+        /* Orbe 4: Cobre / Ámbar Encendido Inferior Derecho */
         .orb-4 {
-            width: 500px;
-            height: 500px;
-            bottom: 10%;
-            right: 0%;
-            background: radial-gradient(circle, rgba(195, 86, 39, 0.25) 0%, rgba(195, 86, 39, 0.08) 45%, transparent 70%);
+            width: 640px;
+            height: 640px;
+            bottom: -2%;
+            right: -8%;
+            background: radial-gradient(circle, rgba(245, 110, 40, 0.75) 0%, rgba(210, 80, 25, 0.35) 45%, rgba(210, 80, 25, 0.08) 68%, transparent 78%);
             animation: orbFloat4 18s infinite alternate;
         }
 
@@ -202,24 +202,24 @@ HTML_INTERFACE = """<!DOCTYPE html>
 
         /* ── Card para Subir Archivo - Cristal Ahumado con Bisel Melocotón ── */
         .upload-card {
-            background: rgba(18, 20, 26, 0.45);
-            backdrop-filter: blur(35px) saturate(140%);
-            -webkit-backdrop-filter: blur(35px) saturate(140%);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            border-top: 1px solid rgba(237, 191, 155, 0.18);
-            border-left: 1px solid rgba(237, 191, 155, 0.08);
-            border-radius: 24px;
+            background: rgba(22, 25, 33, 0.38);
+            backdrop-filter: blur(28px) saturate(130%);
+            -webkit-backdrop-filter: blur(28px) saturate(130%);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-top: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 26px;
             padding: 48px 28px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.65), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.18);
             position: relative;
             overflow: hidden;
         }
         .upload-card:hover, .upload-card.dragover {
-            background: rgba(18, 20, 26, 0.55);
-            border-top: 1px solid rgba(237, 191, 155, 0.28);
+            background: rgba(26, 30, 40, 0.48);
+            border-color: rgba(255, 255, 255, 0.25);
+            border-top: 1px solid rgba(255, 255, 255, 0.45);
             transform: translateY(-2px);
         }
         .upload-icon {
@@ -247,25 +247,23 @@ HTML_INTERFACE = """<!DOCTYPE html>
             font-size: 12px;
         }
         .btn-select {
-            background: rgba(18, 20, 26, 0.7);
-            color: #be8a68;
-            border: 1px solid rgba(255, 255, 255, 0.03);
-            border-top: 1px solid rgba(237, 191, 155, 0.2);
-            padding: 11px 26px;
+            background: linear-gradient(180deg, #d35922 0%, #b84312 100%);
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            border-top: 1px solid rgba(255, 255, 255, 0.35);
+            padding: 11px 28px;
             font-size: 13px;
             font-weight: 600;
             border-radius: 50px;
             cursor: pointer;
             display: inline-block;
             transition: all 0.25s ease;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4);
+            box-shadow: 0 10px 25px rgba(200, 80, 25, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.2);
         }
         .btn-select:hover {
-            background: #c8521a;
-            border-color: #c8521a;
-            color: #ffffff;
-            transform: translateY(-1px);
-            box-shadow: 0 16px 32px rgba(200, 82, 26, 0.35);
+            background: linear-gradient(180deg, #e4662d 0%, #c44a16 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(230, 90, 30, 0.5);
         }
         #fileInput { display: none; }
 
@@ -298,15 +296,15 @@ HTML_INTERFACE = """<!DOCTYPE html>
 
         /* 3. Barra de Identidad del Cliente (Ahumado Oscuro) */
         .client-banner {
-            background: rgba(10, 12, 16, 0.6);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.01);
-            border-top: 1px solid rgba(237, 191, 155, 0.12);
-            border-radius: 14px;
-            padding: 14px 20px;
+            background: rgba(22, 25, 33, 0.38);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-top: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 18px;
+            padding: 16px 24px;
             margin-bottom: 18px;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.12);
         }
         .client-meta h3 {
             font-size: 1.15rem;
@@ -328,18 +326,18 @@ HTML_INTERFACE = """<!DOCTYPE html>
             margin-bottom: 20px;
         }
         .kpi-item {
-            background: rgba(18, 20, 26, 0.35);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border: 1px solid rgba(255, 255, 255, 0.01);
-            border-top: 1px solid rgba(237, 191, 155, 0.1);
-            border-radius: 18px;
-            padding: 16px 18px;
+            background: rgba(22, 25, 33, 0.38);
+            backdrop-filter: blur(28px);
+            -webkit-backdrop-filter: blur(28px);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-top: 1px solid rgba(255, 255, 255, 0.28);
+            border-radius: 20px;
+            padding: 18px 20px;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            min-height: 110px;
-            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.5);
+            min-height: 115px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.14);
             position: relative;
             overflow: hidden;
             transition: transform 0.2s ease;
@@ -347,12 +345,16 @@ HTML_INTERFACE = """<!DOCTYPE html>
         .kpi-item:hover {
             transform: translateY(-2px);
         }
-        .kpi-item.cicladas { border-bottom: 3.5px solid #a0a2a6; } /* Gris apagado */
-        .kpi-item.pagos { border-bottom: 3.5px solid #b08c6a; }    /* Melocotón suave */
-        .kpi-item.mora { border-bottom: 3.5px solid #c8521a; }     /* Naranja Calcite en mora */
-        .kpi-item.ok { border-bottom: 3.5px solid #b08c6a; }
-        .kpi-item.saldo-mora { border-bottom: 3.5px solid #c8521a; }
-        .kpi-item.saldo-ok { border-bottom: 3.5px solid #b08c6a; }
+        .kpi-item.pagos {
+            background: #efbe98;
+            border: 1px solid rgba(255, 255, 255, 0.45);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+        }
+        .kpi-item.pagos .kpi-title { color: #523e32 !important; }
+        .kpi-item.pagos .kpi-val { color: #1c1511 !important; }
+        .kpi-item.pagos .kpi-sub { color: #5a463a !important; }
+        
+        .kpi-val.red { color: #fd7b41 !important; }
 
         .kpi-title {
             font-size: 11px;
@@ -392,30 +394,43 @@ HTML_INTERFACE = """<!DOCTYPE html>
             align-items: center;
         }
         .btn-action {
-            background: rgba(18, 20, 26, 0.6);
-            backdrop-filter: blur(15px);
-            -webkit-backdrop-filter: blur(15px);
-            border: 1px solid rgba(255, 255, 255, 0.02);
-            border-top: 1px solid rgba(237, 191, 155, 0.15);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             border-radius: 50px;
-            color: #be8a68;
             font-weight: 600;
             font-size: 13px;
-            padding: 0.6rem 1.8rem;
+            padding: 0.65rem 1.9rem;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             gap: 8px;
             text-decoration: none;
             transition: all 0.2s ease;
-            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.03);
         }
-        .btn-action:hover {
-            background: #c8521a;
-            border-color: #c8521a;
+        .btn-download-pdf {
+            background: linear-gradient(180deg, #d35922 0%, #b84312 100%);
+            border: 1px solid rgba(255, 255, 255, 0.22);
+            border-top: 1px solid rgba(255, 255, 255, 0.4);
+            color: #ffffff;
+            box-shadow: 0 12px 28px rgba(200, 80, 25, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+        }
+        .btn-download-pdf:hover {
+            background: linear-gradient(180deg, #e4662d 0%, #c44a16 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 16px 34px rgba(230, 90, 30, 0.55);
+        }
+        .btn-download-img {
+            background: rgba(30, 34, 44, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            border-top: 1px solid rgba(255, 255, 255, 0.3);
+            color: #f0ece9;
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.15);
+        }
+        .btn-download-img:hover {
+            background: rgba(38, 44, 58, 0.6);
+            border-color: rgba(255, 255, 255, 0.3);
             color: #ffffff;
             transform: translateY(-2px);
-            box-shadow: 0 16px 32px rgba(200, 82, 26, 0.35);
         }
 
         /* 6. Vista del visor de reportes - Fundido sutil */

@@ -254,46 +254,26 @@ def analyze_and_classify_movements(data):
             leftover_pagos.extend(c["pagos"])
             continue
 
-        is_last_ciclada = (c["num"] == last_ciclada_num)
+        if c["pagos"]:
+            # Cuotas cicladas con pago en su ciclo: imputar el primer pago directamente a su saldo vivo
+            primer_pago = c["pagos"][0]
+            aplicar = min(primer_pago["disponible"], c["saldo_vivo"])
+            c["saldo_vivo"] -= aplicar
+            primer_pago["disponible"] -= aplicar
 
-        if not is_last_ciclada:
-            if c["pagos"]:
-                # Cuotas con pagos en ciclo: imputar el primer pago a esta cuota y
-                # cualquier excedente del primer pago pasa a sobrantes.
-                # Los pagos adicionales en el mismo ciclo también van a sobrantes.
-                primer_pago = c["pagos"][0]
-                aplicar = min(primer_pago["disponible"], c["saldo_vivo"])
-                c["saldo_vivo"] -= aplicar
-                primer_pago["disponible"] -= aplicar
-                # UMBRAL_CICLO: si el pago de ciclo cubrió ≥95% del valor de la cuota,
-                # se considera pago completo (absorbe diferencias por comisión del procesador).
-                if c["saldo_vivo"] <= TOLERANCIA or c["saldo_vivo"] <= c["monto_val"] * (1 - UMBRAL_CICLO):
-                    c["saldo_vivo"] = 0.0
-                # El excedente del primer pago + los pagos adicionales van a sobrantes
-                if primer_pago["disponible"] > TOLERANCIA:
-                    leftover_pagos.append(primer_pago)
-                leftover_pagos.extend(c["pagos"][1:])
-        else:
-            # Última cuota ciclada: si hay mora previa acumulada, sus pagos van a rezago
-            has_prior_uncovered = any(
-                cuotas[i]["saldo_vivo"] > TOLERANCIA
-                for i in range(c["num"] - 1)
-                if cuotas[i]["num"] <= last_ciclada_num
-            )
-            if has_prior_uncovered:
-                leftover_pagos.extend(c["pagos"])
-            else:
-                if c["pagos"]:
-                    primer_pago = c["pagos"][0]
-                    aplicar = min(primer_pago["disponible"], c["saldo_vivo"])
-                    c["saldo_vivo"] -= aplicar
-                    primer_pago["disponible"] -= aplicar
-                    # UMBRAL_CICLO aplica también a la última cuota ciclada
-                    if c["saldo_vivo"] <= TOLERANCIA or c["saldo_vivo"] <= c["monto_val"] * (1 - UMBRAL_CICLO):
-                        c["saldo_vivo"] = 0.0
-                    if primer_pago["disponible"] > TOLERANCIA:
-                        leftover_pagos.append(primer_pago)
-                    leftover_pagos.extend(c["pagos"][1:])
+            # UMBRAL_CICLO: si el pago de ciclo cubrió ≥95% del valor de la cuota,
+            # se considera pago completo (absorbe diferencias por redondeo o comisión del procesador).
+            if c["saldo_vivo"] <= TOLERANCIA or c["saldo_vivo"] <= c["monto_val"] * (1 - UMBRAL_CICLO):
+                c["saldo_vivo"] = 0.0
+
+            # Solo si el disponible restante supera el margen de redondeo (> 5% de la cuota),
+            # pasa a la bolsa de rezago para amortizar cuotas anteriores impagas (ej: Pago Doble).
+            # Diferencias mínimas de redondeo (ej: $11 pesos) se absorben en el pago corriente.
+            if primer_pago["disponible"] > c["monto_val"] * (1 - UMBRAL_CICLO):
+                leftover_pagos.append(primer_pago)
+
+            # Pagos adicionales completos en el mismo ciclo pasan a la bolsa de sobrantes
+            leftover_pagos.extend(c["pagos"][1:])
 
     # ── FASE 2: Amortización de Mora Vieja con Pagos Sobrantes (FIFO) ────────
     # Los pagos sobrantes se ordenan cronológicamente y se imputan contra las cuotas
@@ -462,11 +442,12 @@ def analyze_and_classify_movements(data):
 
         detalle_mora = " y ".join(partes_mora) if partes_mora else cuotas_ref
 
+        cant_pend_str = "1 cuota pendiente" if mora_count == 1 else f"{mora_count} cuotas pendientes"
         revision_texto = (
             f"A la fecha de consulta ({f_cons_str}), han ciclado {cicladas_count} cuotas "
             f"(Cuota 1 a Cuota {cicladas_count}). "
             f"El cliente registra {total_pagos_verificados} pago(s) verificado(s) por un total de **{total_pagado_str}**. "
-            f"Presenta **{mora_count} cuotas pendientes** correspondientes a {cuotas_ref}: {detalle_mora}, "
+            f"Presenta **{cant_pend_str}** correspondiente a {cuotas_ref}: {detalle_mora}, "
             f"generando un saldo vencido de **{data['saldo_actual']}** a pagar antes del {data['pagar_antes_de']}."
         )
     else:
